@@ -46,8 +46,9 @@ const saveLayout = async () => {
 // onMounted(fetchLayout);
 
 const rowHeight = computed(() => {
-  const widthOfContainer = document.querySelector('.grid-container')?.offsetWidth || 0;
-  return widthOfContainer / 12;
+  const widthOfContainer = document.querySelector('body')?.offsetWidth || 0;
+  console.log(Math.floor(widthOfContainer/12));
+  return Math.floor(widthOfContainer/12) / 2;
 });
 
 const importComponent = (componentName) => {
