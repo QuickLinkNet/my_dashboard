@@ -1,16 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
 // import { LayoutItem } from "../types/LayoutItem";
 
 const layout = ref([]);
 
-// const layout = [
-//   { x: 0, y: 0, w: 3, h: 3, i: "0" },
-//   { x: 3, y: 0, w: 3, h: 3, i: "1" },
-//   {x: 3, y: 0, w: 2, h: 2, i: "item-11", component: "ActivityChart"}
-// ]
+watch(layout, () => {;
+  saveLayout();
+}, { deep: true });
 
 const fetchLayout = async () => {
   try {
@@ -22,6 +20,7 @@ const fetchLayout = async () => {
     if (data && data.length > 0) {
       layout.value = JSON.parse(data[0].layout);
     }
+    console.log('Fetched data');
   } catch (error) {
     console.error('Fehler:', error);
   }
@@ -36,14 +35,15 @@ const saveLayout = async () => {
       },
       body: JSON.stringify(layout.value)
     });
-    alert('Layout gespeichert');
+    console.log('Layout gespeichert');
+    // alert('Layout gespeichert');
   } catch (error) {
     console.error('Fehler beim Speichern:', error);
-    alert('Fehler beim Speichern des Layouts');
+    // alert('Fehler beim Speichern des Layouts');
   }
 };
 
-// onMounted(fetchLayout);
+onMounted(fetchLayout);
 
 const rowHeight = computed(() => {
   const widthOfContainer = document.querySelector('body')?.offsetWidth || 0;
@@ -63,7 +63,7 @@ function addNewItem() {
     x: (layout.value.length * 2) % 12,
     y: 0, // platziert das Element am unteren Rand des Layouts
     w: 4,
-    h: 2,
+    h: 4,
     i: "item-" + layout.value.length,
     component: "ActivityChart"
   };
@@ -101,7 +101,7 @@ function addNewItem() {
     </GridLayout>
 
     <button @click="addNewItem">+ Add New Item</button>
-    <button @click="saveLayout">Layout speichern</button>
+    <!-- <button @click="saveLayout">Layout speichern</button> -->
   </div>
 </template>
 
