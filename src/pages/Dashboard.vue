@@ -47,8 +47,7 @@ const saveLayout = async () => {
 
 const rowHeight = computed(() => {
   const widthOfContainer = document.querySelector('body')?.offsetWidth || 0;
-  console.log(widthOfContainer);
-  return widthOfContainer / 12;
+  return Math.floor(widthOfContainer/12) / 2;
 });
 
 const importComponent = (componentName) => {
