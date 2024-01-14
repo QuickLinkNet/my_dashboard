@@ -46,7 +46,8 @@ const saveLayout = async () => {
 // onMounted(fetchLayout);
 
 const rowHeight = computed(() => {
-  const widthOfContainer = document.querySelector('.grid-container')?.offsetWidth || 0;
+  const widthOfContainer = document.querySelector('body')?.offsetWidth || 0;
+  console.log(widthOfContainer);
   return widthOfContainer / 12;
 });
 
@@ -62,7 +63,7 @@ function addNewItem() {
   const newItem = {
     x: (layout.value.length * 2) % 12,
     y: 0, // platziert das Element am unteren Rand des Layouts
-    w: 2,
+    w: 4,
     h: 2,
     i: "item-" + layout.value.length,
     component: "ActivityChart"
