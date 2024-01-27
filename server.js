@@ -22,17 +22,21 @@ db.connect(err => {
     console.log('MySQL verbunden...');
 });
 
-// Route zum Abrufen des Layouts
-app.get('/api/layout', (req, res) => {
-    db.query('SELECT * FROM layouts', (err, results) => {
+app.get('/api/layout/:id', (req, res) => {
+    const id = req.params.id;
+
+    db.query('SELECT * FROM layouts WHERE id = ?', [id], (err, results) => {
         if (err) {
             return res.status(500).send(err);
         }
-        res.json(results);
+        if (results.length > 0) {
+            res.json(results[0]);
+        } else {
+            res.status(404).send('Layout nicht gefunden');
+        }
     });
 });
 
-// Route zum Speichern des Layouts
 app.post('/api/layout', (req, res) => {
     const newLayout = { layout: JSON.stringify(req.body) };
     db.query('INSERT INTO layouts SET ?', newLayout, (err, result) => {
@@ -40,6 +44,29 @@ app.post('/api/layout', (req, res) => {
             return res.status(500).send(err);
         }
         res.json({ id: result.insertId, ...newLayout });
+    });
+});
+
+app.put('/api/layout/:id', (req, res) => {
+    const id = req.params.id;
+    const updatedLayout = JSON.stringify(req.body);
+
+    db.query('UPDATE layouts SET layout = ? WHERE id = ?', [updatedLayout, id], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Layout aktualisiert');
+    });
+});
+
+app.delete('/api/layout/:id', (req, res) => {
+    const id = req.params.id;
+
+    db.query('DELETE FROM layouts WHERE id = ?', id, (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Layout gelöscht');
     });
 });
 
