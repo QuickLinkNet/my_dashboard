@@ -1,54 +1,49 @@
-<script lang="ts">
-import { ref, computed } from 'vue';
-import 'bootstrap/dist/css/bootstrap.min.css';
+<script setup>
+import { ref, onMounted } from 'vue';
+import EasyDataTable from 'vue3-easy-data-table';
+import 'vue3-easy-data-table/dist/style.css';
+import FlexOverlay from './FlexOverlay.vue';
+import axios from 'axios';
 
+const prompts = ref([]);
+const showOverlay = ref(false);
 const jsonInput = ref('');
-const prompts = ref([
-  // Beispiel-Daten oder leer initialisieren
-]);
-const searchTerm = ref('');
-const isEditing = ref(false);
-const editPromptData = ref({});
-const editIndex = ref(-1);
+const repetitionsInput = ref(0);
+const currentPage = ref(1);
+const pageSize = 10;
 
-const filteredPrompts = computed(() => {
-  if (searchTerm.value) {
-    return prompts.value.filter((prompt) =>
-        prompt.prompt.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-        prompt.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-        prompt.keywords.toLowerCase().includes(searchTerm.value.toLowerCase())
-    );
-  }
-  return prompts.value;
-});
+const headers = [
+  { text: 'ID', value: 'id', sortable: true },
+  { text: 'Titel', value: 'title', sortable: true },
+  { text: 'Prompt', value: 'prompt', sortable: true },
+  { text: 'Keywords', value: 'keywords' },
+  { text: 'Erwartete Durchläufe', value: 'expected_runs' },
+  { text: 'Erfolgreiche Durchläufe', value: 'successful_runs' },
+];
 
-const editPrompt = (index: number) => {
-  isEditing.value = true;
-  editIndex.value = index;
-  editPromptData.value = { ...prompts.value[index] };
-};
-
-const savePrompt = () => {
-  prompts.value[editIndex.value] = { ...editPromptData.value };
-  cancelEdit();
-};
-
-const cancelEdit = () => {
-  isEditing.value = false;
-  editPromptData.value = {};
-  editIndex.value = -1;
-};
-
-const deletePrompt = (index: number) => {
-  prompts.value.splice(index, 1);
-};
-
-const addPromptsFromJson = () => {
+const fetchPrompts = async () => {
   try {
-    const newPrompts = JSON.parse(jsonInput.value);
+    const response = await axios.get('http://localhost:3000/api/prompts');
+    prompts.value = response.data.prompts;
+  } catch (error) {
+    console.error('Fehler beim Abrufen der Prompts:', error);
+  }
+};
+
+const addPromptsFromJson = async () => {
+  try {
+    const newPrompts = JSON.parse(jsonInput.value).map(prompt => ({
+      ...prompt,
+      expected_runs: repetitionsInput.value,
+      successful_runs: 0
+    }));
+
     if (Array.isArray(newPrompts)) {
-      prompts.value.push(...newPrompts);
+      await axios.post('http://localhost:3000/api/prompts', newPrompts);
       jsonInput.value = '';
+      repetitionsInput.value = 0;
+      showOverlay.value = false;
+      fetchPrompts();
     } else {
       alert('Ungültiges Format: Es muss ein Array sein');
     }
@@ -56,46 +51,35 @@ const addPromptsFromJson = () => {
     alert('Ungültiges JSON');
   }
 };
+
+onMounted(fetchPrompts);
 </script>
 
 <template>
-  <div class="container mt-4">
-    <h2 class="mb-3">Prompt-Verwaltung</h2>
+  <div>
+    <EasyDataTable
+        :items="prompts"
+        :headers="headers"
+    />
 
-    <div class="mb-3">
-      <input type="text" id="search" class="form-control" v-model="searchTerm" @input="searchPrompts" placeholder="Suche...">
-    </div>
-
-    <div v-for="(prompt, index) in filteredPrompts" :key="index" class="card mb-3">
-      <div class="card-body">
-        <h3 class="card-title">{{ prompt.title }}</h3>
-        <p class="card-text">{{ prompt.prompt }}</p>
-        <div>{{ prompt.keywords }}</div>
-        <button @click="editPrompt(index)" class="btn btn-primary">Bearbeiten</button>
-        <button @click="deletePrompt(index)" class="btn btn-danger">Löschen</button>
-      </div>
-    </div>
-
-    <div v-if="isEditing" class="mb-3">
-      <input type="text" id="editTitle" class="form-control mb-2" v-model="editPromptData.title" placeholder="Titel">
-      <input type="text" id="editPrompt" class="form-control mb-2" v-model="editPromptData.prompt" placeholder="Prompt">
-      <input type="text" id="editKeywords" class="form-control mb-2" v-model="editPromptData.keywords" placeholder="Keywords">
-      <button @click="savePrompt" class="btn btn-success">Speichern</button>
-      <button @click="cancelEdit" class="btn btn-secondary">Abbrechen</button>
-    </div>
-
-    <div class="mb-3">
-      <textarea v-model="jsonInput" class="form-control" placeholder="Füge JSON hier ein"></textarea>
-      <button @click="addPromptsFromJson" class="btn btn-info mt-2">Prompts hinzufügen</button>
-    </div>
+    <button @click="showOverlay = true">Add Prompt</button>
+    <FlexOverlay v-if="showOverlay">
+      <template #default>
+        <h2>Prompts hinzufügen</h2>
+        <textarea v-model="jsonInput" placeholder="Füge JSON hier ein" class="json-input"></textarea>
+        <input type="number" v-model.number="repetitionsInput" placeholder="Erwartete Durchläufe" />
+        <button @click="addPromptsFromJson">Speichern</button>
+        <button @click="showOverlay = false">Abbrechen</button>
+      </template>
+    </FlexOverlay>
   </div>
 </template>
 
 <style>
-/* Füge hier bei Bedarf CSS-Stile hinzu */
-.prompt-item {
-  border: 1px solid #eee;
-  padding: 10px;
+.json-input {
+  width: 100%;
+  height: 300px;
   margin-bottom: 10px;
+  padding: 8px;
 }
 </style>

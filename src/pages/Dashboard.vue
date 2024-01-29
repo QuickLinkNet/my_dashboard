@@ -8,6 +8,7 @@ import PromptManagement from "../components/PromptManagement.vue";
 const layout = ref([]);
 const selectedComponent = ref('ActivityChart'); // Standardkomponente
 const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement']; // Ersetze dies mit tatsächlichen Komponentennamen
+const nextItemId = ref(0);
 
 const saveLayout = async () => {
   try {
@@ -48,14 +49,15 @@ const importComponent = (componentName) => {
 function addNewItem() {
   const newItem = {
     x: (layout.value.length * 2) % 12,
-    y: 0, // platziert das Element am unteren Rand des Layouts
+    y: 0,
     w: 4,
     h: 4,
-    i: "item-" + layout.value.length,
-    component: selectedComponent
+    i: "item-" + nextItemId.value, // Generiere eine eindeutige ID
+    component: selectedComponent.value
   };
 
   layout.value.push(newItem);
+  nextItemId.value++; // Inkrementiere den Zähler für das nächste Item
 }
 
 const fetchLayoutById = async (id) => {
@@ -71,15 +73,18 @@ const fetchLayoutById = async (id) => {
   } catch (error) {
     console.error('Fehler:', error);
   }
+
+  if (layout.value.length > 0) {
+    const maxId = Math.max(...layout.value.map(item => parseInt(item.i.replace('item-', ''))));
+    nextItemId.value = maxId + 1;
+  }
 };
 
-const removeItem = (itemId) => {
+const removeItem = (itemId, event) => {
+  console.log(itemId);
+  event.stopPropagation();
   layout.value = layout.value.filter(item => item.i !== itemId);
 };
-
-onMounted(() => {
-  fetchLayoutById(1); // Abrufen des Layouts mit ID 1 beim Laden der Komponente
-});
 </script>
 
 <template>
@@ -120,13 +125,10 @@ onMounted(() => {
         <div class="grid-content">
           <component :is="importComponent(item.component)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
-          <button class="delete-button" @click="removeItem(item.i)">X</button>
+          <button class="delete-button" @click="removeItem(item.i, $event)">X</button>
         </div>
       </GridItem>
     </GridLayout>
-
-    <button @click="addNewItem">+ Add New Item</button>
-    <button @click="saveLayout">Layout speichern</button>
   </div>
 </template>
 

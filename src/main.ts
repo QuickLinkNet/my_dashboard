@@ -2,4 +2,8 @@ import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 
-createApp(App).mount('#EchoLife')
+const app = createApp(App);
+
+app.mount('#EchoLife');
+
+// createApp(App).mount('#EchoLife')

@@ -80,5 +80,96 @@ app.get('/api/crypto-prices/', async (req, res) => {
     }
 });
 
+app.post('/api/prompts', async (req, res) => {
+    const prompts = req.body;
+
+    // Einfügeoperation für jeden Prompt vorbereiten
+    const insertPrompts = prompts.map(async (prompt) => {
+        const { title, prompt: promptText, keywords, expected_runs } = prompt;
+        return new Promise((resolve, reject) => {
+            db.query('INSERT INTO prompts (title, prompt, keywords, expected_runs, successful_runs) VALUES (?, ?, ?, ?, ?)',
+                [title, promptText, keywords, expected_runs, 0], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+    });
+
+    // Alle Einfügeoperationen ausführen
+    try {
+        await Promise.all(insertPrompts);
+        res.status(200).send('Alle Prompts wurden verarbeitet');
+    } catch (err) {
+        res.status(500).send('Fehler beim Einfügen der Prompts: ' + err.message);
+    }
+});
+
+app.get('/api/prompts', (req, res) => {
+    const limit = parseInt(req.query.limit, 10) || 9999;
+    const offset = parseInt(req.query.offset, 10) || 0;
+
+    // Zuerst die Gesamtanzahl der Einträge ermitteln
+    db.query('SELECT COUNT(*) AS total FROM prompts', (err, totalResults) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+
+        // Gesamtanzahl aus den Ergebnissen extrahieren
+        const total = totalResults[0].total;
+
+        // Dann die eigentlichen Daten abfragen
+        db.query('SELECT * FROM prompts LIMIT ? OFFSET ?', [limit, offset], (err, promptsResults) => {
+            if (err) {
+                return res.status(500).send(err.message);
+            }
+
+            // Ergebnisse und Gesamtanzahl senden
+            res.json({
+                prompts: promptsResults,
+                total: total
+            });
+        });
+    });
+});
+
+
+app.get('/api/prompts/:id', (reqf, res) => {
+    const id = req.params.id;
+    db.query('SELECT * FROM prompts WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        if (result.length > 0) {
+            res.json(result[0]);
+        } else {
+            res.status(404).send('Prompt nicht gefunden');
+        }
+    });
+});
+
+app.put('/api/prompts/:id', (req, res) => {
+    const id = req.params.id;
+    const { title, prompt, keywords } = req.body;
+    db.query('UPDATE prompts SET title = ?, prompt = ?, keywords = ? WHERE id = ?', [title, prompt, keywords, id], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Prompt aktualisiert');
+    });
+});
+
+app.delete('/api/prompts/:id', (req, res) => {
+    const id = req.params.id;
+    db.query('DELETE FROM prompts WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Prompt gelöscht');
+    });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server läuft auf Port ${port}`));
