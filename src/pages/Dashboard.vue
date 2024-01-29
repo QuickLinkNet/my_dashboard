@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
+import CryptoPrice from '../components/CryptoPrice.vue';
+import PromptManagement from "../components/PromptManagement.vue";
 
 const layout = ref([]);
 const selectedComponent = ref('ActivityChart'); // Standardkomponente
-const availableComponents = ['ActivityChart', 'AndereKomponente1', 'AndereKomponente2']; // Ersetze dies mit tatsächlichen Komponentennamen
+const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement']; // Ersetze dies mit tatsächlichen Komponentennamen
 
 const saveLayout = async () => {
   try {
@@ -34,6 +36,10 @@ const rowHeight = computed(() => {
 const importComponent = (componentName) => {
   if (componentName === 'ActivityChart') {
     return ActivityChart;
+  } else if(componentName === 'CryptoPrice') {
+    return CryptoPrice;
+  } else if(componentName === 'PromptManagement') {
+    return PromptManagement;
   }
   // Füge hier weitere Bedingungen für andere Komponenten hinzu
   return null;
@@ -46,7 +52,7 @@ function addNewItem() {
     w: 4,
     h: 4,
     i: "item-" + layout.value.length,
-    component: "ActivityChart"
+    component: selectedComponent
   };
 
   layout.value.push(newItem);
@@ -65,6 +71,10 @@ const fetchLayoutById = async (id) => {
   } catch (error) {
     console.error('Fehler:', error);
   }
+};
+
+const removeItem = (itemId) => {
+  layout.value = layout.value.filter(item => item.i !== itemId);
 };
 
 onMounted(() => {
@@ -110,6 +120,7 @@ onMounted(() => {
         <div class="grid-content">
           <component :is="importComponent(item.component)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
+          <button class="delete-button" @click="removeItem(item.i)">X</button>
         </div>
       </GridItem>
     </GridLayout>
@@ -120,6 +131,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.grid-content {
+  /* deine bestehenden Stile */
+  position: relative; /* Ermöglicht die absolute Positionierung von Kind-Elementen */
+}
+
+.delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+
 .grid-content {
   border: 1px solid #ccc;
   border-radius: 4px;

@@ -8,6 +8,7 @@ const auth = false;
 </script>
 
 <template>
+<!--  <Login></Login>-->
   <Dashboard></Dashboard>
 </template>
 

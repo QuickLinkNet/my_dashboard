@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import cors from 'cors';
+import axios from "axios";
 
 const app = express();
 app.use(cors()); // Aktiviere CORS
@@ -68,6 +69,15 @@ app.delete('/api/layout/:id', (req, res) => {
         }
         res.send('Layout gelöscht');
     });
+});
+
+app.get('/api/crypto-prices/', async (req, res) => {
+    try {
+        const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,dogecoin&vs_currencies=eur,usd');
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ message: "Fehler beim Abrufen der Daten" });
+    }
 });
 
 const port = process.env.PORT || 3000;
