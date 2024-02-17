@@ -126,6 +126,7 @@ const removeItem = (itemId, event) => {
           <component :is="importComponent(item.component)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
           <button class="delete-button" @click="removeItem(item.i, $event)">X</button>
+          <button v-show="hover === item.id" @click="moveItem(item.id)">Verschieben</button>
         </div>
       </GridItem>
     </GridLayout>
