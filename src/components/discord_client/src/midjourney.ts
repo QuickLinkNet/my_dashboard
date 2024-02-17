@@ -194,13 +194,13 @@ export class Midjourney extends MidjourneyMessage {
   }
 
   async Variation({
-                    index,
-                    msgId,
-                    hash,
-                    content,
-                    flags,
-                    loading,
-                  }: {
+    index,
+    msgId,
+    hash,
+    content,
+    flags,
+    loading,
+  }: {
     index: 1 | 2 | 3 | 4;
     msgId: string;
     hash: string;
@@ -218,13 +218,13 @@ export class Midjourney extends MidjourneyMessage {
   }
 
   async Upscale({
-                  index,
-                  msgId,
-                  hash,
-                  content,
-                  flags,
-                  loading,
-                }: {
+    index,
+    msgId,
+    hash,
+    content,
+    flags,
+    loading,
+  }: {
     index: 1 | 2 | 3 | 4;
     msgId: string;
     hash: string;
@@ -242,12 +242,12 @@ export class Midjourney extends MidjourneyMessage {
   }
 
   async Custom({
-                 msgId,
-                 customId,
-                 content,
-                 flags,
-                 loading,
-               }: {
+    msgId,
+    customId,
+    content,
+    flags,
+    loading,
+  }: {
     msgId: string;
     customId: string;
     content?: string;
@@ -323,13 +323,13 @@ export class Midjourney extends MidjourneyMessage {
   }
 
   async ZoomOut({
-                  level,
-                  msgId,
-                  hash,
-                  content,
-                  flags,
-                  loading,
-                }: {
+    level,
+    msgId,
+    hash,
+    content,
+    flags,
+    loading,
+  }: {
     level: "high" | "low" | "2x" | "1.5x";
     msgId: string;
     hash: string;
@@ -362,12 +362,12 @@ export class Midjourney extends MidjourneyMessage {
   }
 
   async Reroll({
-                 msgId,
-                 hash,
-                 content,
-                 flags,
-                 loading,
-               }: {
+    msgId,
+    hash,
+    content,
+    flags,
+    loading,
+  }: {
     msgId: string;
     hash: string;
     content?: string;

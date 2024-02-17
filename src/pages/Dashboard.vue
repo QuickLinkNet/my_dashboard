@@ -4,10 +4,11 @@ import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
 import CryptoPrice from '../components/CryptoPrice.vue';
 import PromptManagement from "../components/PromptManagement.vue";
+import DiscordClient from "../components/discord_client/DiscordClient.vue";
 
 const layout = ref([]);
 const selectedComponent = ref('ActivityChart'); // Standardkomponente
-const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement']; // Ersetze dies mit tatsächlichen Komponentennamen
+const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement', 'DiscordClient']; // Ersetze dies mit tatsächlichen Komponentennamen
 const nextItemId = ref(0);
 
 const saveLayout = async () => {
@@ -41,6 +42,8 @@ const importComponent = (componentName) => {
     return CryptoPrice;
   } else if(componentName === 'PromptManagement') {
     return PromptManagement;
+  } else if(componentName === 'DiscordClient') {
+    return DiscordClient;
   }
   // Füge hier weitere Bedingungen für andere Komponenten hinzu
   return null;
@@ -126,7 +129,6 @@ const removeItem = (itemId, event) => {
           <component :is="importComponent(item.component)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
           <button class="delete-button" @click="removeItem(item.i, $event)">X</button>
-          <button v-show="hover === item.id" @click="moveItem(item.id)">Verschieben</button>
         </div>
       </GridItem>
     </GridLayout>

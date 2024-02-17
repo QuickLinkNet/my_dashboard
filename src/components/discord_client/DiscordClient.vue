@@ -6,8 +6,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue';
-import "dotenv/config";
-import { Midjourney } from "../midjourney/midjourney"; // Stellen Sie sicher, dass der Importpfad korrekt ist
+import { Midjourney } from "./src/midjourney"; // Stellen Sie sicher, dass der Importpfad korrekt ist
 
 export default defineComponent({
   name: 'DiscordClient',
