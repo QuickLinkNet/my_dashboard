@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import cors from 'cors';
 import axios from "axios";
+import { sendMessage } from './discordBot.js';
 
 const app = express();
 app.use(cors()); // Aktiviere CORS
@@ -21,6 +22,13 @@ db.connect(err => {
         throw err;
     }
     console.log('MySQL verbunden...');
+});
+
+app.post('/api/send-discord-message', (req, res) => {
+    const { channelId, message } = req.body;
+    sendMessage(channelId, message)
+        .then(() => res.send('Nachricht erfolgreich gesendet'))
+        .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
 });
 
 app.get('/api/layout/:id', (req, res) => {
