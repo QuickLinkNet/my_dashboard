@@ -1,9 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "commonjs",
+//    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+//    "target": "ES2020",
+    "target": "ES2022" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "lib": [
+      "es2021",
+      "DOM",
+      "esnext.asynciterable"
+    ],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -18,7 +24,8 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true
   },
   "include": [
     "src/**/*.ts",
