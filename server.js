@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import cors from 'cors';
 import axios from "axios";
+import { sendMessage } from './discordBot.js';
 
 const app = express();
 app.use(cors()); // Aktiviere CORS
@@ -21,6 +22,13 @@ db.connect(err => {
         throw err;
     }
     console.log('MySQL verbunden...');
+});
+
+app.post('/api/send-discord-message', (req, res) => {
+    const { channelId, message } = req.body;
+    sendMessage(channelId, message)
+        .then(() => res.send('Nachricht erfolgreich gesendet'))
+        .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
 });
 
 app.get('/api/layout/:id', (req, res) => {
@@ -83,7 +91,6 @@ app.get('/api/crypto-prices/', async (req, res) => {
 app.post('/api/prompts', async (req, res) => {
     const prompts = req.body;
 
-    // Einfügeoperation für jeden Prompt vorbereiten
     const insertPrompts = prompts.map(async (prompt) => {
         const { title, prompt: promptText, keywords, expected_runs } = prompt;
         return new Promise((resolve, reject) => {
@@ -98,7 +105,6 @@ app.post('/api/prompts', async (req, res) => {
         });
     });
 
-    // Alle Einfügeoperationen ausführen
     try {
         await Promise.all(insertPrompts);
         res.status(200).send('Alle Prompts wurden verarbeitet');

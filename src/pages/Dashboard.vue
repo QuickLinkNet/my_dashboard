@@ -4,11 +4,11 @@ import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
 import CryptoPrice from '../components/CryptoPrice.vue';
 import PromptManagement from "../components/PromptManagement.vue";
-import DiscordClient from "../components/discordClient/DiscrodClient.vue"
+import DiscordClient from "../components/discord_client/DiscordClient.vue";
 
 const layout = ref([]);
 const selectedComponent = ref('ActivityChart'); // Standardkomponente
-const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement']; // Ersetze dies mit tatsächlichen Komponentennamen
+const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement', 'DiscordClient']; // Ersetze dies mit tatsächlichen Komponentennamen
 const nextItemId = ref(0);
 
 /*const saveLayout = async () => {
@@ -58,6 +58,8 @@ const importComponent = (componentName) => {
     return CryptoPrice;
   } else if(componentName === 'PromptManagement') {
     return PromptManagement;
+  } else if(componentName === 'DiscordClient') {
+    return DiscordClient;
   }
   // Füge hier weitere Bedingungen für andere Komponenten hinzu
   return null;
