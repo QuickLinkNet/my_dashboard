@@ -4,16 +4,33 @@ import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
 import CryptoPrice from '../components/CryptoPrice.vue';
 import PromptManagement from "../components/PromptManagement.vue";
+import DiscordClient from "../components/discordClient/DiscrodClient.vue"
 
 const layout = ref([]);
 const selectedComponent = ref('ActivityChart'); // Standardkomponente
 const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement']; // Ersetze dies mit tatsächlichen Komponentennamen
 const nextItemId = ref(0);
 
+/*const saveLayout = async () => {
+  try {
+    await fetch('http://localhost:3000/api/layout/', {
+      method: 'PUT', // Verwende PUT anstelle von POST
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(layout.value)
+    });
+    console.log('Layout gespeichert');
+  } catch (error) {
+    console.error('Fehler beim Speichern:', error);
+  }
+};*/
+
 const saveLayout = async () => {
   try {
-    await fetch('http://localhost:3000/api/layout/1', {
-      method: 'PUT', // Verwende PUT anstelle von POST
+    const layoutId = 1; // Angenommen, Sie möchten das Layout mit ID 1 aktualisieren
+    await fetch(`http://localhost:3000/api/layout/${layoutId}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -60,7 +77,7 @@ function addNewItem() {
   nextItemId.value++; // Inkrementiere den Zähler für das nächste Item
 }
 
-const fetchLayoutById = async (id) => {
+/*const fetchLayoutById = async (id) => {
   try {
     const response = await fetch(`http://localhost:3000/api/layout/${id}`);
     if (!response.ok) {
@@ -78,7 +95,25 @@ const fetchLayoutById = async (id) => {
     const maxId = Math.max(...layout.value.map(item => parseInt(item.i.replace('item-', ''))));
     nextItemId.value = maxId + 1;
   }
+};*/
+
+const fetchLayoutById = async (id) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/layout/${id}`);
+    if (!response.ok) {
+      throw new Error('Fehler beim Laden des Layouts');
+    }
+    const data = await response.json();
+    if (data.layout) {
+      layout.value = JSON.parse(data.layout);
+    } else {
+      console.error('Layout-Daten sind leer oder im falschen Format');
+    }
+  } catch (error) {
+    console.error('Fehler:', error);
+  }
 };
+
 
 const removeItem = (itemId, event) => {
   console.log(itemId);

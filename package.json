@@ -9,21 +9,31 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@huggingface/inference": "^2.6.4",
+    "async": "^3.2.5",
     "axios": "^1.6.7",
     "body-parser": "^1.20.2",
     "bootstrap": "^5.3.2",
     "chart.js": "^4.4.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "isomorphic-ws": "^5.0.0",
     "lodash-es": "^4.17.21",
     "mysql": "^2.18.1",
+    "semiver": "^1.1.0",
+    "snowflake": "^0.0.0",
+    "snowyflake": "^2.0.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "vue": "^3.3.11",
     "vue-chartjs": "^5.3.0",
     "vue3-easy-data-table": "^1.5.47",
     "vue3-grid-layout-next": "^1.0.6"
   },
   "devDependencies": {
+    "@types/node": "^20.11.19",
     "@vitejs/plugin-vue": "^4.5.2",
+    "sass": "^1.72.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
     "vue-tsc": "^1.8.25"
