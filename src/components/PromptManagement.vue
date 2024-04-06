@@ -15,35 +15,66 @@
         </div>
       </template>
     </FlexOverlay>
+
+    <FlexOverlay :isOpen="showEditOverlay" @close="toggleEditOverlay(false)">
+      <template #default>
+        <h2>Prompt bearbeiten</h2>
+        <input type="text" v-model="editPromptData.title" placeholder="Titel"/>
+        <textarea v-model="editPromptData.prompt" placeholder="Prompt"></textarea>
+        <textarea v-model="editPromptData.keywords" placeholder="Keywords"></textarea>
+        <div class="buttonWrapper">
+          <button @click="saveEditedPrompt">Speichern</button>
+          <button @click="toggleEditOverlay(false)">Abbrechen</button>
+        </div>
+      </template>
+    </FlexOverlay>
+
     <!-- Tabelle zum Anzeigen der Prompts -->
-    <table>
-      <thead>
-      <tr>
-        <th>Titel</th>
-        <th>Prompt</th>
-        <th>Keywords</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="prompt in prompts" :key="prompt.id">
-        <td>{{ prompt.title }}</td>
-        <td>{{ prompt.prompt }}</td>
-        <td>{{ prompt.keywords }}</td>
-      </tr>
-      </tbody>
-    </table>
+    <DataTable :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave">
+      <!-- Title Feld -->
+      <Column field="title" header="Title">
+        <template #editor="slotProps">
+          <InputText v-model="slotProps.data.title" />
+        </template>
+      </Column>
+
+      <!-- Prompt Feld -->
+      <Column field="prompt" header="Prompt">
+        <template #editor="slotProps">
+          <InputText v-model="slotProps.data.prompt" />
+        </template>
+      </Column>
+
+      <!-- Keywords Feld -->
+      <Column field="keywords" header="Keywords">
+        <template #editor="slotProps">
+          <InputText v-model="slotProps.data.keywords" />
+        </template>
+      </Column>
+
+      <!-- Row Editor Column -->
+      <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center"></Column>
+    </DataTable>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
 
 const showOverlay = ref(false);
+const showEditOverlay = ref(false);
 const jsonInput = ref('');
 const validationPassed = ref(null);
 const prompts = ref([]);
+const editingRows = ref([]);
+const editingCache = ref({});
+const editPromptData = ref({});
 
 const validateAndAddPrompts = () => {
   try {
@@ -76,6 +107,10 @@ const toggleOverlay = () => {
   showOverlay.value = !showOverlay.value; // Schaltet zwischen true und false um
 };
 
+const toggleEditOverlay = (isOpen) => {
+  showEditOverlay.value = isOpen;
+};
+
 const fetchPrompts = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/prompts');
@@ -85,6 +120,35 @@ const fetchPrompts = async () => {
   }
 };
 
+
+const onRowEditInit = (event) => {
+  toggleEditOverlay(true);
+  editingCache.value[event.data.id] = { ...event.data };
+  editPromptData.value = editingCache.value[event.data.id];
+};
+
+const onRowEditCancel = (event) => {
+  const originalData = editingCache.value[event.data.id];
+  if (originalData) {
+    Object.assign(event.data, originalData);
+    delete editingCache.value[event.data.id];
+  }
+};
+
+const onRowEditSave = async (event) => {
+  try {
+    const editedPrompt = event.data;
+    await axios.put(`http://localhost:3000/api/prompts/${editedPrompt.id}`, editedPrompt);
+    await fetchPrompts(); // Aktualisiere die Tabelle nach dem Speichern
+  } catch (error) {
+    console.error('Fehler beim Speichern der Änderungen:', error);
+  }
+};
+
+const saveEditedPrompt = async () => {
+  // Implementiere das Speichern bearbeiteter Prompts
+};
+
 onMounted(fetchPrompts);
 </script>
 
@@ -92,5 +156,9 @@ onMounted(fetchPrompts);
 .buttonWrapper {
   display: flex;
   margin-bottom: 12px;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  font-size: 12px;
 }
 </style>

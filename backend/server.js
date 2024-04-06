@@ -4,7 +4,7 @@ import mysql from 'mysql';
 import cors from 'cors';
 import axios from "axios";
 // import { sendMessage } from './discordBot.js';
-import sendMessage from "./discordBot.js";
+// import sendMessage from "./discordBot.js";
 // const { sendMessage } = require('./discordBot.js');
 
 const app = express();
@@ -29,9 +29,9 @@ db.connect(err => {
 app.post('/api/send-discord-message', (req, res) => {
     const { channelId, message } = req.body;
     // const result = await MyMidjourneyClient.sendImagineCommand(prompt);
-    sendMessage(channelId, message)
-        .then(() => res.send('Nachricht erfolgreich gesendet'))
-        .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
+    // sendMessage(channelId, message)
+    //     .then(() => res.send('Nachricht erfolgreich gesendet'))
+    //     .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
 });
 
 app.get('/api/layout/:id', (req, res) => {

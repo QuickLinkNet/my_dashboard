@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 import cors from 'cors';
 import axios from "axios";
-import { sendMessage } from './discordBot.js';
 
 const app = express();
 app.use(cors()); // Aktiviere CORS

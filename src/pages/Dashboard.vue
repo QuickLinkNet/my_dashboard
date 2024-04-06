@@ -72,7 +72,8 @@ function addNewItem() {
     w: 4,
     h: 4,
     i: "item-" + nextItemId.value, // Generiere eine eindeutige ID
-    component: selectedComponent.value
+    component: selectedComponent.value,
+    isDraggable: false
   };
 
   layout.value.push(newItem);
@@ -122,6 +123,13 @@ const removeItem = (itemId, event) => {
   event.stopPropagation();
   layout.value = layout.value.filter(item => item.i !== itemId);
 };
+
+const toggleDrag = (itemId) => {
+  const item = layout.value.find(i => i.i === itemId);
+  if (item) {
+    item.isDraggable = !item.isDraggable;
+  }
+}
 </script>
 
 <template>
@@ -145,7 +153,7 @@ const removeItem = (itemId, event) => {
         :layout="layout"
         :colNum="12"
         :rowHeight="rowHeight"
-        :isDraggable="true"
+        :isDraggable="false"
         :isResizable="true"
         :verticalCompact="true"
         :margin="[10, 10]"
@@ -158,8 +166,10 @@ const removeItem = (itemId, event) => {
           :w="item.w"
           :h="item.h"
           :i="item.i"
+          :is-draggable="item.isDraggable"
       >
         <div class="grid-content">
+          <button class="drag-toggle-button" @click="toggleDrag(item.i)">Verschieben</button>
           <component :is="importComponent(item.component)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
           <button class="delete-button" @click="removeItem(item.i, $event)">X</button>
@@ -186,13 +196,14 @@ const removeItem = (itemId, event) => {
 }
 
 .grid-content {
+  font-size: 12px;
+  overflow-y: scroll;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
   padding: 10px;
   text-align: center;
   height: calc(100% - 20px);
-  overflow: hidden;
   touch-action: none;
 }
 .top-menu {
@@ -217,5 +228,16 @@ const removeItem = (itemId, event) => {
 
 .icon {
   margin-right: 5px;
+}
+
+.grid-content:hover .drag-toggle-button {
+  display: block;
+}
+
+.drag-toggle-button {
+  display: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 </style>
