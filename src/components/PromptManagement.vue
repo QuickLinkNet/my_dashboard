@@ -24,35 +24,21 @@
         <textarea v-model="editPromptData.keywords" placeholder="Keywords"></textarea>
         <div class="buttonWrapper">
           <button @click="saveEditedPrompt">Speichern</button>
-          <button @click="toggleEditOverlay(false)">Abbrechen</button>
         </div>
       </template>
     </FlexOverlay>
 
-    <!-- Tabelle zum Anzeigen der Prompts -->
-    <DataTable :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave">
-      <!-- Title Feld -->
-      <Column field="title" header="Title">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data.title" />
+    <DataTable :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" :filters="globalFilters">
+      <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
+        <template #filter>
+          <div class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <InputText v-model="globalFilters['title']" @input="onFilter('title', $event.target.value)" placeholder="Filtern" />
+          </div>
         </template>
       </Column>
-
-      <!-- Prompt Feld -->
-      <Column field="prompt" header="Prompt">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data.prompt" />
-        </template>
-      </Column>
-
-      <!-- Keywords Feld -->
-      <Column field="keywords" header="Keywords">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data.keywords" />
-        </template>
-      </Column>
-
-      <!-- Row Editor Column -->
+      <Column field="prompt" header="Prompt" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
+      <Column field="keywords" header="Keywords" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
       <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center"></Column>
     </DataTable>
   </div>
@@ -65,7 +51,6 @@ import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import InputText from 'primevue/inputtext';
 
 const showOverlay = ref(false);
 const showEditOverlay = ref(false);
@@ -75,13 +60,13 @@ const prompts = ref([]);
 const editingRows = ref([]);
 const editingCache = ref({});
 const editPromptData = ref({});
+const globalFilters = ref({});
 
 const validateAndAddPrompts = () => {
   try {
     const parsedPrompts = JSON.parse(jsonInput.value);
     if (Array.isArray(parsedPrompts)) {
       validationPassed.value = true;
-      // Senden an Backend, wenn gültig
       savePrompts(parsedPrompts);
     } else {
       throw new Error('Eingabe ist kein Array');
@@ -95,7 +80,7 @@ const validateAndAddPrompts = () => {
 const savePrompts = async (promptsToSave) => {
   try {
     await axios.post('http://localhost:3000/api/prompts', promptsToSave);
-    fetchPrompts(); // Aktualisiere die Prompts nach dem Speichern
+    fetchPrompts();
     showOverlay.value = false;
     jsonInput.value = '';
   } catch (error) {
@@ -146,7 +131,24 @@ const onRowEditSave = async (event) => {
 };
 
 const saveEditedPrompt = async () => {
-  // Implementiere das Speichern bearbeiteter Prompts
+  if (editPromptData.value.title && editPromptData.value.prompt && editPromptData.value.id) {
+    try {
+      await axios.put(`http://localhost:3000/api/prompts/${editPromptData.value.id}`, {
+        title: editPromptData.value.title,
+        prompt: editPromptData.value.prompt,
+        keywords: editPromptData.value.keywords,
+      });
+
+      await fetchPrompts();
+      showEditOverlay.value = false;
+
+      console.log('Prompt erfolgreich aktualisiert');
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Prompts:', error);
+    }
+  } else {
+    console.error('Nicht alle erforderlichen Felder sind ausgefüllt.');
+  }
 };
 
 onMounted(fetchPrompts);
