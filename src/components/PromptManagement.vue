@@ -19,7 +19,7 @@
     <FlexOverlay :isOpen="showEditOverlay" @close="toggleEditOverlay(false)">
       <template #default>
         <h2>Prompt bearbeiten</h2>
-        <input type="text" v-model="editPromptData.title" placeholder="Titel"/>
+        <textarea v-model="editPromptData.title" placeholder="Title"></textarea>
         <textarea v-model="editPromptData.prompt" placeholder="Prompt"></textarea>
         <textarea v-model="editPromptData.keywords" placeholder="Keywords"></textarea>
         <div class="buttonWrapper">
@@ -30,7 +30,7 @@
 
     <DataTable :filters="filters" :globalFilterFields="['title']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave">
       <template #header>
-        <div class="flex justify-content-between">
+        <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
           <IconField iconPosition="left">
             <InputIcon>
