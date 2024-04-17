@@ -28,7 +28,20 @@
       </template>
     </FlexOverlay>
 
-    <DataTable :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" :filters="globalFilters">
+    <DataTable :filters="filters" :globalFilterFields="['title']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave">
+      <template #header>
+        <div class="flex justify-content-between">
+          <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+          <IconField iconPosition="left">
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+          </IconField>
+        </div>
+      </template>
+      <template #empty> No customers found. </template>
+      <template #loading> Loading customers data. Please wait. </template>
       <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
         <template #filter>
           <div class="p-input-icon-left">
@@ -44,13 +57,17 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import { FilterMatchMode, FilterOperator } from 'primevue/api';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import Button from 'primevue/button'
 
 const showOverlay = ref(false);
 const showEditOverlay = ref(false);
@@ -61,6 +78,19 @@ const editingRows = ref([]);
 const editingCache = ref({});
 const editPromptData = ref({});
 const globalFilters = ref({});
+const filters = ref();
+const loading = ref(true);
+
+const initFilters = () => {
+  filters.value = {
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    title: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    prompts: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    keywords: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  };
+};
+
+initFilters();
 
 const validateAndAddPrompts = () => {
   try {
@@ -80,7 +110,7 @@ const validateAndAddPrompts = () => {
 const savePrompts = async (promptsToSave) => {
   try {
     await axios.post('http://localhost:3000/api/prompts', promptsToSave);
-    fetchPrompts();
+    await fetchPrompts();
     showOverlay.value = false;
     jsonInput.value = '';
   } catch (error) {
@@ -130,6 +160,12 @@ const onRowEditSave = async (event) => {
   }
 };
 
+const onFilter = (value, filter) => {
+  if (filter === 'title') {
+    filters.value['global'].value = value;
+  }
+};
+
 const saveEditedPrompt = async () => {
   if (editPromptData.value.title && editPromptData.value.prompt && editPromptData.value.id) {
     try {
@@ -151,7 +187,10 @@ const saveEditedPrompt = async () => {
   }
 };
 
-onMounted(fetchPrompts);
+onMounted(() => {
+  fetchPrompts();
+  loading.value = false;
+});
 </script>
 
 <style>
