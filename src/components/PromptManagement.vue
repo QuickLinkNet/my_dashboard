@@ -81,6 +81,10 @@ const globalFilters = ref({});
 const filters = ref();
 const loading = ref(true);
 
+const clearFilter = () => {
+  filters.value['global'].value = null;
+};
+
 const initFilters = () => {
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -109,8 +113,26 @@ const validateAndAddPrompts = () => {
 
 const savePrompts = async (promptsToSave) => {
   try {
-    await axios.post('http://localhost:3000/api/prompts', promptsToSave);
-    await fetchPrompts();
+    // Erstelle ein neues Array, das modifizierte Prompts enthält
+    const modifiedPrompts = promptsToSave.map(prompt => {
+      // Extrahiere Keywords und füge die erforderlichen hinzu, falls nicht vorhanden
+      let keywords = prompt.keywords.split(', ').map(keyword => keyword.trim());
+      const requiredKeywords = ["generative ai", "generativ", "ki"];
+
+      // Füge nur die erforderlichen Keywords hinzu, die noch nicht vorhanden sind
+      requiredKeywords.forEach(keyword => {
+        if (!keywords.includes(keyword)) {
+          keywords.push(keyword);
+        }
+      });
+
+      // Aktualisiere die Keywords des Prompts und gib den modifizierten Prompt zurück
+      return { ...prompt, keywords: keywords.join(", ") };
+    });
+
+    // Sende die modifizierten Prompts an das Backend
+    await axios.post('http://localhost:3000/api/prompts', modifiedPrompts);
+    await fetchPrompts(); // Aktualisiere die Prompts nach dem Speichern
     showOverlay.value = false;
     jsonInput.value = '';
   } catch (error) {
