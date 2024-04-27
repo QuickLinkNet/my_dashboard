@@ -4,13 +4,13 @@
     <FlexOverlay :isOpen="showOverlay" @close="showOverlay = false">
       <template #default>
         <h2>Neuer Prompt</h2>
-        <textarea v-model="jsonInput" placeholder="JSON eingeben" @input="validateAndAddPrompts"></textarea>
+        <textarea v-model="jsonInput" placeholder="JSON eingeben" @input="validatePrompts"></textarea>
         <div v-if="validationPassed !== null">
           <span v-if="validationPassed" style="color: green;">✔ Gültiges JSON</span>
           <span v-else style="color: red;">✖ Ungültiges JSON</span>
         </div>
         <div class="buttonWrapper">
-          <button @click="validateAndAddPrompts" :disabled="!validationPassed">Speichern</button>
+          <button @click="savePrompts" :disabled="!validationPassed">Speichern</button>
           <button @click="showOverlay = false">Abbrechen</button>
         </div>
       </template>
@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, computed} from 'vue';
 import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
@@ -80,6 +80,11 @@ const editPromptData = ref({});
 const globalFilters = ref({});
 const filters = ref();
 const loading = ref(true);
+const parsedPrompts = computed(() => {
+  if(jsonInput.value !== "") {
+    return JSON.parse(jsonInput.value)
+  }
+});
 
 const clearFilter = () => {
   filters.value['global'].value = null;
@@ -96,12 +101,10 @@ const initFilters = () => {
 
 initFilters();
 
-const validateAndAddPrompts = () => {
+const validatePrompts = () => {
   try {
-    const parsedPrompts = JSON.parse(jsonInput.value);
-    if (Array.isArray(parsedPrompts)) {
+    if (Array.isArray(parsedPrompts.value)) {
       validationPassed.value = true;
-      savePrompts(parsedPrompts);
     } else {
       throw new Error('Eingabe ist kein Array');
     }
@@ -111,10 +114,10 @@ const validateAndAddPrompts = () => {
   }
 };
 
-const savePrompts = async (promptsToSave) => {
+const savePrompts = async () => {
   try {
     // Erstelle ein neues Array, das modifizierte Prompts enthält
-    const modifiedPrompts = promptsToSave.map(prompt => {
+    const modifiedPrompts = parsedPrompts.value.map(prompt => {
       // Extrahiere Keywords und füge die erforderlichen hinzu, falls nicht vorhanden
       let keywords = prompt.keywords.split(', ').map(keyword => keyword.trim());
       const requiredKeywords = ["generative ai", "generativ", "ki"];
@@ -127,7 +130,7 @@ const savePrompts = async (promptsToSave) => {
       });
 
       // Aktualisiere die Keywords des Prompts und gib den modifizierten Prompt zurück
-      return { ...prompt, keywords: keywords.join(", ") };
+      return { ...prompt, keywords: keywords.join(", "), expected_runs: "1", successful_runs: "0" };
     });
 
     // Sende die modifizierten Prompts an das Backend
