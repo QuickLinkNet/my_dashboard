@@ -1,14 +1,14 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import mysql from 'mysql';
-import cors from 'cors';
+import * as express from 'express';
+import { Request, Response } from 'express';
+import * as bodyParser from 'body-parser';
+import * as mysql from 'mysql';
+import * as cors from 'cors';
 import axios from "axios";
 
 const app = express();
-app.use(cors()); // Aktiviere CORS
+app.use(cors());
 app.use(bodyParser.json());
 
-// MySQL-Verbindung
 const db = mysql.createConnection({
     host: '192.168.178.14',
     user: 'root',
@@ -23,14 +23,15 @@ db.connect(err => {
     console.log('MySQL verbunden...');
 });
 
-app.post('/api/send-discord-message', (req, res) => {
+app.post('/api/send-discord-message', (req: Request, res: Response) => {
     const { channelId, message } = req.body;
-    sendMessage(channelId, message)
-      .then(() => res.send('Nachricht erfolgreich gesendet'))
-      .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
+    // Hier fehlt die Implementierung für das Senden einer Nachricht an Discord
+    // sendMessage(channelId, message)
+    //     .then(() => res.send('Nachricht erfolgreich gesendet'))
+    //     .catch(err => res.status(500).send('Fehler beim Senden der Nachricht: ' + err.message));
 });
 
-app.get('/api/layout/:id', (req, res) => {
+app.get('/api/layout/:id', (req: Request, res: Response) => {
     const id = req.params.id;
 
     db.query('SELECT * FROM layouts WHERE id = ?', [id], (err, results) => {
@@ -45,7 +46,7 @@ app.get('/api/layout/:id', (req, res) => {
     });
 });
 
-app.post('/api/layout', (req, res) => {
+app.post('/api/layout', (req: Request, res: Response) => {
     const newLayout = { layout: JSON.stringify(req.body) };
     db.query('INSERT INTO layouts SET ?', newLayout, (err, result) => {
         if (err) {
@@ -55,7 +56,7 @@ app.post('/api/layout', (req, res) => {
     });
 });
 
-app.put('/api/layout/:id', (req, res) => {
+app.put('/api/layout/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     const updatedLayout = JSON.stringify(req.body);
 
@@ -67,7 +68,7 @@ app.put('/api/layout/:id', (req, res) => {
     });
 });
 
-app.delete('/api/layout/:id', (req, res) => {
+app.delete('/api/layout/:id', (req: Request, res: Response) => {
     const id = req.params.id;
 
     db.query('DELETE FROM layouts WHERE id = ?', id, (err, result) => {
@@ -78,7 +79,7 @@ app.delete('/api/layout/:id', (req, res) => {
     });
 });
 
-app.get('/api/crypto-prices/', async (req, res) => {
+app.get('/api/crypto-prices/', async (req: Request, res: Response) => {
     try {
         const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,dogecoin&vs_currencies=eur,usd');
         res.json(response.data);
@@ -87,10 +88,10 @@ app.get('/api/crypto-prices/', async (req, res) => {
     }
 });
 
-app.post('/api/prompts', async (req, res) => {
+app.post('/api/prompts', async (req: Request, res: Response) => {
     const prompts = req.body;
 
-    const insertPrompts = prompts.map(async (prompt) => {
+    const insertPrompts = prompts.map(async (prompt: any) => {
         const { title, prompt: promptText, keywords, expected_runs } = prompt;
         return new Promise((resolve, reject) => {
             db.query('INSERT INTO prompts (title, prompt, keywords, expected_runs, successful_runs) VALUES (?, ?, ?, ?, ?)',
@@ -112,26 +113,22 @@ app.post('/api/prompts', async (req, res) => {
     }
 });
 
-app.get('/api/prompts', (req, res) => {
-    const limit = parseInt(req.query.limit, 10) || 9999;
-    const offset = parseInt(req.query.offset, 10) || 0;
+app.get('/api/prompts', (req: Request, res: Response) => {
+    const limit = parseInt(req.query.limit as string, 10) || 9999;
+    const offset = parseInt(req.query.offset as string, 10) || 0;
 
-    // Zuerst die Gesamtanzahl der Einträge ermitteln
     db.query('SELECT COUNT(*) AS total FROM prompts', (err, totalResults) => {
         if (err) {
             return res.status(500).send(err.message);
         }
 
-        // Gesamtanzahl aus den Ergebnissen extrahieren
         const total = totalResults[0].total;
 
-        // Dann die eigentlichen Daten abfragen
         db.query('SELECT * FROM prompts LIMIT ? OFFSET ?', [limit, offset], (err, promptsResults) => {
             if (err) {
                 return res.status(500).send(err.message);
             }
 
-            // Ergebnisse und Gesamtanzahl senden
             res.json({
                 prompts: promptsResults,
                 total: total
@@ -140,8 +137,7 @@ app.get('/api/prompts', (req, res) => {
     });
 });
 
-
-app.get('/api/prompts/:id', (reqf, res) => {
+app.get('/api/prompts/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     db.query('SELECT * FROM prompts WHERE id = ?', [id], (err, result) => {
         if (err) {
@@ -155,7 +151,7 @@ app.get('/api/prompts/:id', (reqf, res) => {
     });
 });
 
-app.put('/api/prompts/:id', (req, res) => {
+app.put('/api/prompts/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     const { title, prompt, keywords } = req.body;
     db.query('UPDATE prompts SET title = ?, prompt = ?, keywords = ? WHERE id = ?', [title, prompt, keywords, id], (err, result) => {
@@ -166,7 +162,7 @@ app.put('/api/prompts/:id', (req, res) => {
     });
 });
 
-app.delete('/api/prompts/:id', (req, res) => {
+app.delete('/api/prompts/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     db.query('DELETE FROM prompts WHERE id = ?', [id], (err, result) => {
         if (err) {
