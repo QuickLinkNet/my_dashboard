@@ -60,11 +60,25 @@ app.put('/api/layout/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     const updatedLayout = JSON.stringify(req.body);
 
-    db.query('UPDATE layouts SET layout = ? WHERE id = ?', [updatedLayout, id], (err, result) => {
+    // Verwende UPSERT Logik
+    const query = `
+        INSERT INTO layouts (id, layout) VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE layout = VALUES(layout);
+    `;
+
+    db.query(query, [id, updatedLayout], (err, result) => {
         if (err) {
             return res.status(500).send(err);
         }
-        res.send('Layout aktualisiert');
+
+        // Überprüfe das Ergebnis, um festzustellen, ob es sich um ein Update oder ein Insert handelt
+        if (result.affectedRows === 0) {
+            res.send('Keine Änderung vorgenommen.');
+        } else if (result.affectedRows === 1 && result.insertId) {
+            res.send('Neues Layout angelegt.');
+        } else {
+            res.send('Layout aktualisiert.');
+        }
     });
 });
 
@@ -170,6 +184,10 @@ app.delete('/api/prompts/:id', (req: Request, res: Response) => {
         }
         res.send('Prompt gelöscht');
     });
+});
+
+app.get('/api/health', (req: Request, res: Response) => {
+    res.status(200).send('Backend verbunden');
 });
 
 const port = process.env.PORT || 3000;

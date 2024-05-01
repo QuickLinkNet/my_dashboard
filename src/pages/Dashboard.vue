@@ -5,26 +5,25 @@ import ActivityChart from '../components/ActivityChart.vue';
 import CryptoPrice from '../components/CryptoPrice.vue';
 import PromptManagement from "../components/PromptManagement.vue";
 import DiscordClient from "../components/discord_client/DiscordClient.vue";
+import ApiHealthCheck from "../components/api/apiHealthCheck.vue";
+import Button from 'primevue/button'
+import Toolbar from 'primevue/toolbar';
+import Dropdown from 'primevue/dropdown';
 
 const layout = ref([]);
-const selectedComponent = ref('ActivityChart'); // Standardkomponente
-const availableComponents = ['ActivityChart', 'CryptoPrice', 'PromptManagement', 'DiscordClient']; // Ersetze dies mit tatsächlichen Komponentennamen
-const nextItemId = ref(0);
-
-/*const saveLayout = async () => {
-  try {
-    await fetch('http://localhost:3000/api/layout/', {
-      method: 'PUT', // Verwende PUT anstelle von POST
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(layout.value)
-    });
-    console.log('Layout gespeichert');
-  } catch (error) {
-    console.error('Fehler beim Speichern:', error);
+const availableComponents = [
+  {
+    name: 'ActivityChart',
+  }, {
+    name: 'CryptoPrice',
+  }, {
+    name: 'PromptManagement',
+  }, {
+    name: 'DiscordClient'
   }
-};*/
+]
+const selectedComponent = ref(availableComponents[0]); // Standardkomponente
+const nextItemId = ref(0);
 
 const saveLayout = async () => {
   try {
@@ -71,34 +70,14 @@ function addNewItem() {
     y: 0,
     w: 4,
     h: 4,
-    i: "item-" + nextItemId.value, // Generiere eine eindeutige ID
+    i: "item-" + nextItemId.value, // Nutzt jetzt korrekt inkrementierte nextItemId
     component: selectedComponent.value,
     isDraggable: false
   };
 
   layout.value.push(newItem);
-  nextItemId.value++; // Inkrementiere den Zähler für das nächste Item
+  nextItemId.value++; // Inkrementiere den Zähler für das nächste Item korrekt
 }
-
-/*const fetchLayoutById = async (id) => {
-  try {
-    const response = await fetch(`http://localhost:3000/api/layout/${id}`);
-    if (!response.ok) {
-      throw new Error('Fehler beim Laden des Layouts');
-    }
-    const data = await response.json();
-    layout.value = data;
-    layout.value = JSON.parse(data.layout);
-    // Hier kannst du das abgerufene Layout im Browser anzeigen
-  } catch (error) {
-    console.error('Fehler:', error);
-  }
-
-  if (layout.value.length > 0) {
-    const maxId = Math.max(...layout.value.map(item => parseInt(item.i.replace('item-', ''))));
-    nextItemId.value = maxId + 1;
-  }
-};*/
 
 const fetchLayoutById = async (id) => {
   try {
@@ -109,6 +88,11 @@ const fetchLayoutById = async (id) => {
     const data = await response.json();
     if (data.layout) {
       layout.value = JSON.parse(data.layout);
+      // Initialisiere nextItemId basierend auf den vorhandenen IDs
+      nextItemId.value = layout.value.reduce((max, item) => {
+        const itemIdNumber = parseInt(item.i.split('-')[1]);
+        return itemIdNumber > max ? itemIdNumber : max;
+      }, 0) + 1; // Stelle sicher, dass nextItemId größer ist als jede vorhandene ID
     } else {
       console.error('Layout-Daten sind leer oder im falschen Format');
     }
@@ -119,7 +103,6 @@ const fetchLayoutById = async (id) => {
 
 
 const removeItem = (itemId, event) => {
-  console.log(itemId);
   event.stopPropagation();
   layout.value = layout.value.filter(item => item.i !== itemId);
 };
@@ -133,21 +116,17 @@ const toggleDrag = (itemId) => {
 </script>
 
 <template>
-  <div class="top-menu">
-    <div class="menu-right">
-      <select v-model="selectedComponent">
-        <option v-for="comp in availableComponents" :key="comp" :value="comp">{{ comp }}</option>
-      </select>
-      <button @click="addNewItem" class="menu-button">
-        <!-- Icon für "Add New Item", z.B. ein Plus-Icon -->
-        <span class="icon">+</span> Add
-      </button>
-      <button @click="saveLayout" class="menu-button">
-        <!-- Icon für "Save", z.B. ein Speicher-Icon -->
-        <span class="icon">💾</span> Save
-      </button>
-    </div>
-  </div>
+  <Toolbar>
+    <template #start>
+      <api-health-check class=" mr-2"></api-health-check>
+    </template>
+
+    <template #end>
+      <Dropdown v-model="selectedComponent" :options="availableComponents" optionLabel="name" placeholder="Select a Component" class="md:w-14rem mr-2" />
+      <Button icon="pi pi-plus" class="mr-2" severity="secondary" @click="addNewItem" />
+      <Button icon="pi pi-save" class="mr-2" severity="secondary" @click="saveLayout" />
+    </template>
+  </Toolbar>
   <div class="grid-container">
     <GridLayout
         :layout="layout"
@@ -208,26 +187,21 @@ const toggleDrag = (itemId) => {
 }
 .top-menu {
   width: 100%;
-  background-color: #f0f0f0; /* Wähle eine passende Hintergrundfarbe */
+  background-color: #f0f0f0;
   padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  justify-content: flex-end; /* Elemente nach rechts ausrichten */
+  justify-content: flex-start;
 }
 
-.menu-right {
-  display: flex;
-  align-items: center;
+.right-item {
+  margin-left: auto;
 }
 
-.menu-button {
-  margin-left: 10px;
-  cursor: pointer;
-  /* Weitere Button-Stile hinzufügen */
-}
-
-.icon {
-  margin-right: 5px;
+.left-item,
+.right-item {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .grid-content:hover .drag-toggle-button {

@@ -89,7 +89,7 @@ app.get('/api/layout/:id', function (req, res) {
     });
 });
 app.post('/api/layout', function (req, res) {
-    const newLayout = {layout: JSON.stringify(req.body)};
+    var newLayout = { layout: JSON.stringify(req.body) };
     db.query('INSERT INTO layouts SET ?', newLayout, function (err, result) {
         if (err) {
             return res.status(500).send(err);
@@ -98,17 +98,28 @@ app.post('/api/layout', function (req, res) {
     });
 });
 app.put('/api/layout/:id', function (req, res) {
-    const id = req.params.id;
-    const updatedLayout = JSON.stringify(req.body);
-    db.query('UPDATE layouts SET layout = ? WHERE id = ?', [updatedLayout, id], function (err, result) {
+    var id = req.params.id;
+    var updatedLayout = JSON.stringify(req.body);
+    // Verwende UPSERT Logik
+    var query = "\n        INSERT INTO layouts (id, layout) VALUES (?, ?)\n        ON DUPLICATE KEY UPDATE layout = VALUES(layout);\n    ";
+    db.query(query, [id, updatedLayout], function (err, result) {
         if (err) {
             return res.status(500).send(err);
         }
-        res.send('Layout aktualisiert');
+        // Überprüfe das Ergebnis, um festzustellen, ob es sich um ein Update oder ein Insert handelt
+        if (result.affectedRows === 0) {
+            res.send('Keine Änderung vorgenommen.');
+        }
+        else if (result.affectedRows === 1 && result.insertId) {
+            res.send('Neues Layout angelegt.');
+        }
+        else {
+            res.send('Layout aktualisiert.');
+        }
     });
 });
 app.delete('/api/layout/:id', function (req, res) {
-    const id = req.params.id;
+    var id = req.params.id;
     db.query('DELETE FROM layouts WHERE id = ?', id, function (err, result) {
         if (err) {
             return res.status(500).send(err);
@@ -224,6 +235,9 @@ app.delete('/api/prompts/:id', function (req, res) {
         }
         res.send('Prompt gelöscht');
     });
+});
+app.get('/api/health', function (req, res) {
+    res.status(200).send('Backend verbunden');
 });
 var port = process.env.PORT || 3000;
 app.listen(port, function () { return console.log("Server l\u00E4uft auf Port ".concat(port)); });
