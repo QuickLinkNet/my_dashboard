@@ -148,10 +148,10 @@ const toggleDrag = (itemId) => {
           :is-draggable="item.isDraggable"
       >
         <div class="grid-content">
-          <button class="drag-toggle-button" @click="toggleDrag(item.i)">Verschieben</button>
-          <component :is="importComponent(item.component)" v-if="item.component" />
+          <Button icon="pi pi-arrows-alt" class="mr-2" severity="secondary" @click="toggleDrag(item.i)"/>
+          <Button icon="pi pi-trash" class="mr-2" severity="secondary" @click="removeItem(item.i, $event)"/>
+          <component :is="importComponent(item.component.name)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
-          <button class="delete-button" @click="removeItem(item.i, $event)">X</button>
         </div>
       </GridItem>
     </GridLayout>
@@ -160,18 +160,7 @@ const toggleDrag = (itemId) => {
 
 <style scoped>
 .grid-content {
-  /* deine bestehenden Stile */
-  position: relative; /* Ermöglicht die absolute Positionierung von Kind-Elementen */
-}
-
-.delete-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border: none;
-  background-color: red;
-  color: white;
-  cursor: pointer;
+  position: relative;
 }
 
 .grid-content {
@@ -185,33 +174,8 @@ const toggleDrag = (itemId) => {
   height: calc(100% - 20px);
   touch-action: none;
 }
-.top-menu {
-  width: 100%;
-  background-color: #f0f0f0;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: flex-start;
-}
 
-.right-item {
-  margin-left: auto;
-}
-
-.left-item,
-.right-item {
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.grid-content:hover .drag-toggle-button {
+.grid-content:hover {
   display: block;
-}
-
-.drag-toggle-button {
-  display: none;
-  position: absolute;
-  right: 10px;
-  top: 10px;
 }
 </style>

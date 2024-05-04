@@ -7,28 +7,23 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import Button from 'primevue/button'
 
-export default {
-  setup() {
-    const loading = ref(true);
-    const error = ref('');
-    const apiConnected = ref(false);
+const loading = ref(true);
+const error = ref('');
+const apiConnected = ref(false);
 
-    onMounted(async () => {
-      try {
-        const response = await axios.get('/api/health');
-        apiConnected.value = response.status === 200;
-      } catch (err) {
-        error.value = err.message;
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    return { loading, error, apiConnected };
-  },
-};
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/health');
+    apiConnected.value = response.status === 200;
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>

@@ -28,7 +28,8 @@
       </template>
     </FlexOverlay>
 
-    <DataTable :filters="filters" :globalFilterFields="['title']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave">
+    <DataTable :filters="filters" :globalFilterFields="['title', 'prompt', 'keywords']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} prompts"
+               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown">
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -40,7 +41,7 @@
           </IconField>
         </div>
       </template>
-      <template #empty> No customers found. </template>
+      <template #empty> No entries found. </template>
       <template #loading> Loading customers data. Please wait. </template>
       <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
         <template #filter>
