@@ -130,7 +130,7 @@ const savePrompts = async () => {
       return { ...prompt, keywords: keywords.join(", "), expected_runs: "1", successful_runs: "0" };
     });
 
-    await axios.post('http://localhost:3000/api/prompts', modifiedPrompts);
+    await axios.post('http://www.my-dashboard.net:3000/api/prompts', modifiedPrompts);
     await fetchPrompts();
     showOverlay.value = false;
     jsonInput.value = '';
@@ -149,7 +149,7 @@ const toggleEditOverlay = (isOpen) => {
 
 const fetchPrompts = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/prompts');
+    const response = await axios.get('http://www.my-dashboard.net:3000/api/prompts');
     prompts.value = response.data.prompts;
   } catch (error) {
     console.error('Fehler beim Abrufen der Prompts:', error);
@@ -174,7 +174,7 @@ const onRowEditCancel = (event) => {
 const onRowEditSave = async (event) => {
   try {
     const editedPrompt = event.data;
-    await axios.put(`http://localhost:3000/api/prompts/${editedPrompt.id}`, editedPrompt);
+    await axios.put(`http://www.my-dashboard.net:3000/api/prompts/${editedPrompt.id}`, editedPrompt);
     await fetchPrompts(); // Aktualisiere die Tabelle nach dem Speichern
   } catch (error) {
     console.error('Fehler beim Speichern der Änderungen:', error);
@@ -190,7 +190,7 @@ const onFilter = (value, filter) => {
 const saveEditedPrompt = async () => {
   if (editPromptData.value.title && editPromptData.value.prompt && editPromptData.value.id) {
     try {
-      await axios.put(`http://localhost:3000/api/prompts/${editPromptData.value.id}`, {
+      await axios.put(`http://www.my-dashboard.net:3000/api/prompts/${editPromptData.value.id}`, {
         title: editPromptData.value.title,
         prompt: editPromptData.value.prompt,
         keywords: editPromptData.value.keywords,

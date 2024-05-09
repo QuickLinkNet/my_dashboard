@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      '/api': 'http://localhost:3000' // Die URL deines Express-Backends
+      '/api': 'http://www.my-dashboard.net:3000' // Die URL deines Express-Backends
     }
   }
 })

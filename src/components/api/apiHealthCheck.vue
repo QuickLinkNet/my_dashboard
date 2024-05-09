@@ -18,7 +18,7 @@ const apiConnected = ref(false);
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/health');
+    const response = await axios.get('http://www.my-dashboard.net:3000/api/health');
     apiConnected.value = response.status === 200;
   } catch (err) {
     error.value = err.message;

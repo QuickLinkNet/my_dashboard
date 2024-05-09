@@ -18,7 +18,7 @@ const exchangeRate = ref(1); // Wechselkurs von € zu $
 
 const fetchCryptoPrices = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/cryptoprices');
+    const response = await axios.get('http://www.my-dashboard.net:3000/api/cryptoprices');
     const data = response.data;
     return {
       bitcoin: data.bitcoin[currentCurrency.value.toLowerCase()],
