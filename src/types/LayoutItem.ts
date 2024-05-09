@@ -6,6 +6,3 @@ interface LayoutItem {
   i: string;
   component?: string;
 }
-
-export default class LayoutItem {
-}

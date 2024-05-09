@@ -1,6 +1,5 @@
 <template>
   <div>
-    <button @click="toggleOverlay">Neue Prompt´s</button>
     <FlexOverlay :isOpen="showOverlay" @close="showOverlay = false">
       <template #default>
         <h2>Neuer Prompt</h2>
@@ -33,6 +32,7 @@
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+          <Button @click="toggleOverlay" severity="secondary">Neue Prompt´s</Button>
           <IconField iconPosition="left">
             <InputIcon>
               <i class="pi pi-search" />
@@ -117,26 +117,21 @@ const validatePrompts = () => {
 
 const savePrompts = async () => {
   try {
-    // Erstelle ein neues Array, das modifizierte Prompts enthält
     const modifiedPrompts = parsedPrompts.value.map(prompt => {
-      // Extrahiere Keywords und füge die erforderlichen hinzu, falls nicht vorhanden
       let keywords = prompt.keywords.split(', ').map(keyword => keyword.trim());
       const requiredKeywords = ["generative ai", "generativ", "ki"];
 
-      // Füge nur die erforderlichen Keywords hinzu, die noch nicht vorhanden sind
       requiredKeywords.forEach(keyword => {
         if (!keywords.includes(keyword)) {
           keywords.push(keyword);
         }
       });
 
-      // Aktualisiere die Keywords des Prompts und gib den modifizierten Prompt zurück
       return { ...prompt, keywords: keywords.join(", "), expected_runs: "1", successful_runs: "0" };
     });
 
-    // Sende die modifizierten Prompts an das Backend
     await axios.post('http://localhost:3000/api/prompts', modifiedPrompts);
-    await fetchPrompts(); // Aktualisiere die Prompts nach dem Speichern
+    await fetchPrompts();
     showOverlay.value = false;
     jsonInput.value = '';
   } catch (error) {
@@ -145,7 +140,7 @@ const savePrompts = async () => {
 };
 
 const toggleOverlay = () => {
-  showOverlay.value = !showOverlay.value; // Schaltet zwischen true und false um
+  showOverlay.value = !showOverlay.value;
 };
 
 const toggleEditOverlay = (isOpen) => {

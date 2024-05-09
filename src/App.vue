@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import Login from './pages/login.vue'
 import Dashboard from "./pages/Dashboard.vue";
-import ActivityChart from "./components/ActivityChart.vue";
-
-const auth = false;
 </script>
 
 <template>
-<!--  <Login></Login>-->
   <Dashboard></Dashboard>
 </template>
 

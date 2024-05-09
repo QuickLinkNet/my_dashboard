@@ -4,7 +4,6 @@ import { GridLayout, GridItem } from 'vue3-grid-layout-next';
 import ActivityChart from '../components/ActivityChart.vue';
 import CryptoPrice from '../components/CryptoPrice.vue';
 import PromptManagement from "../components/PromptManagement.vue";
-import DiscordClient from "../components/discord_client/DiscordClient.vue";
 import ApiHealthCheck from "../components/api/apiHealthCheck.vue";
 import Button from 'primevue/button'
 import Toolbar from 'primevue/toolbar';
