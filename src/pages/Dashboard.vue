@@ -8,6 +8,14 @@ import ApiHealthCheck from "../components/api/apiHealthCheck.vue";
 import Button from 'primevue/button'
 import Toolbar from 'primevue/toolbar';
 import Dropdown from 'primevue/dropdown';
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
+
+const toast = useToast();
+
+const show = () => {
+  toast.add({ severity: 'info', summary: 'Info', detail: 'Message Content', life: 3000 });
+};
 
 const layout = ref([]);
 const availableComponents = [
@@ -34,9 +42,9 @@ const saveLayout = async () => {
       },
       body: JSON.stringify(layout.value)
     });
-    console.log('Layout gespeichert');
+    toast.add({ severity: 'success', summary: 'success', detail: 'Layout successfully saved', life: 3000 });
   } catch (error) {
-    console.error('Fehler beim Speichern:', error);
+    toast.add({ severity: 'error', summary: 'error', detail: 'Layout could not be saved', life: 3000 });
   }
 };
 
@@ -93,10 +101,10 @@ const fetchLayoutById = async (id) => {
         return itemIdNumber > max ? itemIdNumber : max;
       }, 0) + 1; // Stelle sicher, dass nextItemId größer ist als jede vorhandene ID
     } else {
-      console.error('Layout-Daten sind leer oder im falschen Format');
+      toast.add({ severity: 'info', summary: 'info', detail: 'Layout data is blank or in incorrect format', life: 3000 });
     }
   } catch (error) {
-    console.error('Fehler:', error);
+    toast.add({ severity: 'error', summary: 'error', detail: error, life: 3000 });
   }
 };
 
@@ -115,6 +123,11 @@ const toggleDrag = (itemId) => {
 </script>
 
 <template>
+
+  <div class="card flex justify-content-center">
+    <Toast />
+  </div>
+
   <Toolbar>
     <template #start>
       <api-health-check class=" mr-2"></api-health-check>
