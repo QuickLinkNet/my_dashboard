@@ -10,6 +10,7 @@ import Toolbar from 'primevue/toolbar';
 import Dropdown from 'primevue/dropdown';
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
+import DashboardGridItem from "../components/dashboard/DashboardGridItem.vue";
 
 const toast = useToast();
 
@@ -95,11 +96,10 @@ const fetchLayoutById = async (id) => {
     const data = await response.json();
     if (data.layout) {
       layout.value = JSON.parse(data.layout);
-      // Initialisiere nextItemId basierend auf den vorhandenen IDs
       nextItemId.value = layout.value.reduce((max, item) => {
         const itemIdNumber = parseInt(item.i.split('-')[1]);
         return itemIdNumber > max ? itemIdNumber : max;
-      }, 0) + 1; // Stelle sicher, dass nextItemId größer ist als jede vorhandene ID
+      }, 0) + 1;
     } else {
       toast.add({ severity: 'info', summary: 'info', detail: 'Layout data is blank or in incorrect format', life: 3000 });
     }
@@ -160,8 +160,7 @@ const toggleDrag = (itemId) => {
           :is-draggable="item.isDraggable"
       >
         <div class="grid-content">
-          <Button icon="pi pi-arrows-alt" class="mr-2" severity="secondary" @click="toggleDrag(item.i)"/>
-          <Button icon="pi pi-trash" class="mr-2" severity="secondary" @click="removeItem(item.i, $event)"/>
+          <dashboard-grid-item :item=item :remove-item="removeItem" :toggle-drag="toggleDrag"></dashboard-grid-item>
           <component :is="importComponent(item.component.name)" v-if="item.component" />
           <div v-else>{{ item.i }}</div>
         </div>
@@ -176,6 +175,7 @@ const toggleDrag = (itemId) => {
 }
 
 .grid-content {
+  position: relative;
   font-size: 12px;
   overflow-y: scroll;
   border: 1px solid #ccc;
@@ -187,7 +187,7 @@ const toggleDrag = (itemId) => {
   touch-action: none;
 }
 
-.grid-content:hover {
+.grid-content:hover .dashboard-grit-item-wrapper {
   display: block;
 }
 </style>
