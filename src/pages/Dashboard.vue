@@ -11,13 +11,13 @@ import Dropdown from 'primevue/dropdown';
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import DashboardGridItem from "../components/dashboard/DashboardGridItem.vue";
-
-const toast = useToast();
+import ToDo from "../components/ToDo.vue";
 
 const show = () => {
   toast.add({ severity: 'info', summary: 'Info', detail: 'Message Content', life: 3000 });
 };
 
+const toast = useToast();
 const layout = ref([]);
 const availableComponents = [
   {
@@ -28,6 +28,8 @@ const availableComponents = [
     name: 'PromptManagement',
   }, {
     name: 'DiscordClient'
+  }, {
+    name: 'ToDo'
   }
 ]
 const selectedComponent = ref(availableComponents[0]); // Standardkomponente
@@ -67,6 +69,8 @@ const importComponent = (componentName) => {
     return PromptManagement;
   } else if(componentName === 'DiscordClient') {
     return DiscordClient;
+  } else if(componentName === 'ToDo') {
+    return ToDo;
   }
   // Füge hier weitere Bedingungen für andere Komponenten hinzu
   return null;
@@ -170,8 +174,8 @@ const toggleDrag = (itemId) => {
 </template>
 
 <style scoped>
-.grid-content {
-  position: relative;
+.grid-content:hover .button-wrapper {
+  display: block;
 }
 
 .grid-content {
@@ -190,4 +194,18 @@ const toggleDrag = (itemId) => {
 .grid-content:hover .dashboard-grit-item-wrapper {
   display: block;
 }
+
+.button-wrapper {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: none;
+  z-index: 15;
+}
 </style>
+
+This image captures a high-speed journey through a digital universe, where vibrant data streams converge into a brilliant nexus of information. It symbolizes the explosive growth of digital data and the complex networks that drive our connected world.
+Featuring a dynamic visualization of a cybernetic core, this image portrays the pulsating heart of digital evolution. The intense light at the center represents the source of innovation and technology driving the modern digital era.
+This image offers a glimpse into the future, depicting streams of data flowing towards a distant horizon. It represents the continuous and rapid movement of information in tomorrow's digital networks, highlighting the endless possibilities of technological advancement.
+Illustrating the moment of technological singularity, this image showcases the convergence of data and light into a singular point, representing the fusion of human intelligence and artificial intelligence into a new form of existence.
+This visualization captures the essence of the information superhighway, where data travels at the speed of light. The vibrant lines and intense focus point reflect the ultra-fast, efficient, and expansive nature of modern digital communications.

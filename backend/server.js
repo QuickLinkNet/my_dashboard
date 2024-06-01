@@ -239,5 +239,73 @@ app.delete('/api/prompts/:id', function (req, res) {
 app.get('/api/health', function (req, res) {
     res.status(200).send('Backend verbunden');
 });
+// Erstellen eines neuen Todo
+app.post('/api/todos', function (req, res) {
+    var _a = req.body, title = _a.title, description = _a.description, status = _a.status, priority = _a.priority, due_date = _a.due_date;
+    var newTodo = { title: title, description: description, status: status, priority: priority, due_date: due_date };
+    db.query('INSERT INTO todos SET ?', newTodo, function (err, result) {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.json(__assign({ id: result.insertId }, newTodo));
+    });
+});
+// Lesen aller Todos mit optionaler Paginierung und Filterung nach Fälligkeitsdatum
+app.get('/api/todos', function (req, res) {
+    var limit = parseInt(req.query.limit, 10) || 9999;
+    var offset = parseInt(req.query.offset, 10) || 0;
+    var dueDate = req.query.due_date;
+    var query = 'SELECT * FROM todos';
+    var queryParams = [];
+    if (dueDate) {
+        query += ' WHERE due_date = ?';
+        queryParams.push(dueDate);
+    }
+    query += ' LIMIT ? OFFSET ?';
+    queryParams.push(limit, offset);
+    db.query(query, queryParams, function (err, todosResults) {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        res.json(todosResults);
+    });
+});
+// Lesen eines einzelnen Todo nach ID
+app.get('/api/todos/:id', function (req, res) {
+    var id = req.params.id;
+    db.query('SELECT * FROM todos WHERE id = ?', [id], function (err, result) {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        if (result.length > 0) {
+            res.json(result[0]);
+        }
+        else {
+            res.status(404).send('Todo nicht gefunden');
+        }
+    });
+});
+// Aktualisieren eines bestehenden Todo nach ID
+app.put('/api/todos/:id', function (req, res) {
+    var id = req.params.id;
+    var _a = req.body, title = _a.title, description = _a.description, status = _a.status, priority = _a.priority, due_date = _a.due_date;
+    var updatedTodo = { title: title, description: description, status: status, priority: priority, due_date: due_date };
+    db.query('UPDATE todos SET ? WHERE id = ?', [updatedTodo, id], function (err, result) {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Todo aktualisiert');
+    });
+});
+// Löschen eines Todo nach ID
+app.delete('/api/todos/:id', function (req, res) {
+    var id = req.params.id;
+    db.query('DELETE FROM todos WHERE id = ?', [id], function (err, result) {
+        if (err) {
+            return res.status(500).send(err);
+        }
+        res.send('Todo gelöscht');
+    });
+});
 var port = process.env.PORT || 3000;
 app.listen(port, function () { return console.log("Server l\u00E4uft auf Port ".concat(port)); });
