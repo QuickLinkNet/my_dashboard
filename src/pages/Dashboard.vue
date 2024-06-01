@@ -174,16 +174,12 @@ const toggleDrag = (itemId) => {
 </template>
 
 <style scoped>
-.grid-content:hover .button-wrapper {
-  display: block;
-}
-
 .grid-content {
   position: relative;
   font-size: 12px;
   overflow-y: scroll;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 2px solid #a8a8a8;
+  border-radius: 2px;
   background-color: #fff;
   padding: 10px;
   text-align: center;
@@ -193,14 +189,6 @@ const toggleDrag = (itemId) => {
 
 .grid-content:hover .dashboard-grit-item-wrapper {
   display: block;
-}
-
-.button-wrapper {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: none;
-  z-index: 15;
 }
 </style>
 

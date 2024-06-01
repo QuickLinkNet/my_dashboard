@@ -6,7 +6,7 @@
       <Calendar v-model="selectedDate" dateFormat="dd.mm.yy" showIcon class="flex-item"/>
     </div>
     <Dialog :modal="true" :closeOnEscape="true" :closable="true" v-model:visible="showDialog" header="Neues ToDo">
-      <form @submit.prevent="addTodo">
+      <form @submit.prevent="addTodo" class="todo-form">
         <input v-model="newTodo.title" placeholder="Title" required />
         <input v-model="newTodo.description" placeholder="Description" />
         <select v-model="newTodo.priority">
@@ -211,5 +211,31 @@ button:hover {
 
 .flex-item {
   margin: 0 5px;
+}
+
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-form input,
+.todo-form select,
+.todo-form button {
+  padding: 8px;
+  font-size: 1em;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.todo-form button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.todo-form button:hover {
+  background-color: #0056b3;
 }
 </style>
