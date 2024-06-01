@@ -248,8 +248,8 @@ app.get('/api/todos/:id', (req: Request, res: Response) => {
 // Aktualisieren eines bestehenden Todo nach ID
 app.put('/api/todos/:id', (req: Request, res: Response) => {
     const id = req.params.id;
-    const { title, description, status, priority, due_date } = req.body;
-    const updatedTodo = { title, description, status, priority, due_date };
+    const { title, description, status, priority, due_date, done } = req.body;
+    const updatedTodo = { title, description, status, priority, due_date, done };
 
     db.query('UPDATE todos SET ? WHERE id = ?', [updatedTodo, id], (err, result) => {
         if (err) {

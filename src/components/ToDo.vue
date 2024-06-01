@@ -18,7 +18,7 @@
         <button type="submit">Add ToDo</button>
       </form>
     </Dialog>
-    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines>
+    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -41,15 +41,22 @@
         </template>
       </Column>
       <Column field="description" header="Description" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-      <Column field="priority" header="Priority" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
       <Column field="status" header="Status" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-      <Column field="due_date" header="Due Date" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
+      <Column field="priority" header="Priority" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern">
+        <template #body="slotProps">
+          <i :class="priorityIcon(slotProps.data.priority)" style="font-size: 1.5em;"></i>
+        </template>
+      </Column>
       <Column header="Actions" bodyStyle="text-align:center">
         <template #body="slotProps">
-          <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTodo(slotProps.data.id)" />
+          <Button icon="pi pi-check" @click="markAsDone(slotProps.data)" />
+          <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTodoWithAnimation(slotProps.data.id)" />
         </template>
       </Column>
     </DataTable>
+
+    <!-- Erfolgsicon -->
+    <i v-if="showSuccessIcon" class="pi pi-check success-icon"></i>
   </div>
 </template>
 
@@ -125,6 +132,21 @@ export default defineComponent({
       }
     };
 
+    // Methode in der setup-Funktion
+    const showSuccessIcon = ref(false);
+
+    const deleteTodoWithAnimation = async (id: number) => {
+      try {
+        await deleteTodo(id);
+        showSuccessIcon.value = true;
+        setTimeout(() => {
+          showSuccessIcon.value = false;
+        }, 2000);
+      } catch (error) {
+        console.error('Error deleting todo:', error);
+      }
+    };
+
     const deleteTodo = async (id: number) => {
       try {
         await axios.delete(`http://www.my-dashboard.net:3000/api/todos/${id}`);
@@ -146,6 +168,47 @@ export default defineComponent({
       fetchTodos();
     };
 
+    // Methode in der setup-Funktion
+    const priorityClass = (priority: string) => {
+      return priority.toLowerCase();
+    };
+
+    // Methode zur Bestimmung der Zeilenklasse basierend auf der Priorität
+    const priorityRowClass = (rowData: Todo) => {
+      return {
+        'low-row': rowData.priority === 'low',
+        'medium-row': rowData.priority === 'medium',
+        'high-row': rowData.priority === 'high'
+      };
+    };
+
+// Methode zur Bestimmung des Icons basierend auf der Priorität
+    const priorityIcon = (priority: string) => {
+      switch (priority) {
+        case 'low':
+          return 'pi pi-arrow-down low-icon';
+        case 'medium':
+          return 'pi pi-arrow-right medium-icon';
+        case 'high':
+          return 'pi pi-arrow-up high-icon';
+        default:
+          return '';
+      }
+    };
+
+    const markAsDone = async (todo: Todo) => {
+      try {
+        todo.done = true;
+        await axios.put(`http://www.my-dashboard.net:3000/api/todos/${todo.id}`, todo);
+      } catch (error) {
+        console.error('Error marking todo as done:', error);
+      }
+    };
+
+    const isDoneClass = (rowData: Todo) => {
+      return rowData.done ? 'done-row' : '';
+    };
+
     return {
       todos,
       newTodo,
@@ -156,14 +219,21 @@ export default defineComponent({
       filters,
       showDialog,
       toggleDialog,
-      onDateChange
+      onDateChange,
+      priorityClass,
+      deleteTodoWithAnimation,
+      showSuccessIcon,
+      priorityRowClass,
+      priorityIcon,
+      markAsDone,
+      isDoneClass,
     };
   }
 });
 
 </script>
 
-<style scoped>
+<style>
 todo-container {
   margin: auto;
   padding: 10px;
@@ -237,5 +307,72 @@ button:hover {
 
 .todo-form button:hover {
   background-color: #0056b3;
+}
+
+/* Styles für die Prioritäten */
+.low {
+  color: green;
+  font-weight: bold;
+}
+
+.medium {
+  color: orange;
+  font-weight: bold;
+}
+
+.high {
+  color: red;
+  font-weight: bold;
+}
+
+/* Styles für das Erfolgsicon */
+.success-icon {
+  color: green;
+  font-size: 2em;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: fadeOut 2s forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Styles für die Zeilenhintergrundfarben */
+.low-row {
+  background-color: #d4edda; /* Helles Grün für niedrige Priorität */
+}
+
+.medium-row {
+  background-color: #fff3cd; /* Helles Gelb für mittlere Priorität */
+}
+
+.high-row {
+  background-color: #f8d7da;
+}
+
+/* Styles für die Icons */
+.low-icon {
+  color: green;
+}
+
+.medium-icon {
+  color: orange;
+}
+
+.high-icon {
+  color: red;
+}
+
+.done-row {
+  text-decoration: line-through;
+  color: gray;
 }
 </style>
