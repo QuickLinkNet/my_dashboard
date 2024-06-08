@@ -5,9 +5,8 @@
       <Button @click="prevDay" icon="pi pi-chevron-left" class="flex-item"/>
       <Calendar v-model="selectedDate" dateFormat="dd.mm.yy" showIcon class="flex-item"/>
       <Button @click="nextDay" icon="pi pi-chevron-right" class="flex-item"/>
-    </div>
-    <div class="flex-container">
       <Button @click="toggleDialog" label="Add ToDo" icon="pi pi-plus" class="flex-item"/>
+      <Calendar v-model="selectedDate" dateFormat="dd.mm.yy" showIcon class="flex-item"/>
     </div>
     <Dialog :modal="true" :closeOnEscape="true" :closable="true" v-model:visible="showDialog" header="Neues ToDo">
       <form @submit.prevent="addTodo" class="add-todo-dialog">
@@ -22,7 +21,7 @@
         <button type="submit">Add ToDo</button>
       </form>
     </Dialog>
-    <DataTable :value="todos" class="todo-table" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
+    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -46,11 +45,12 @@
       </Column>
       <Column header="Actions" bodyStyle="text-align:center">
         <template #body="slotProps">
-          <button class="action-button" @click="markAsDone(slotProps.data)"><i class="pi pi-check p-button-success"></i></button>
-          <button class="action-button" @click="deleteTodoWithAnimation(slotProps.data.id)"><i class="pi pi-trash p-button-danger"></i></button>
+          <Button icon="pi pi-check" @click="markAsDone(slotProps.data)" />
+          <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTodoWithAnimation(slotProps.data.id)" />
         </template>
       </Column>
     </DataTable>
+
     <!-- Erfolgsicon -->
     <i v-if="showSuccessIcon" class="pi pi-check success-icon"></i>
   </div>
@@ -67,6 +67,7 @@ import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import axios from 'axios';
+import { ToDo } from "../types/ToDo";
 
 export default defineComponent({
   name: 'ToDoComponent',
@@ -81,15 +82,16 @@ export default defineComponent({
     IconField
   },
   setup() {
-    const todos = ref<Todo[]>([]);
-    const newTodo = ref<Todo>({
+    const todos = ref<ToDo[]>([]);
+    const newTodo = ref<ToDo>({
+      done: false,
       title: '',
       description: '',
       status: 'pending',
       priority: 'medium',
       due_date: new Date().toISOString().split('T')[0]
     });
-    const selectedDate = ref<Date | null>(new Date());
+    const selectedDate = ref<Date>(new Date());
     const filters = ref<{ global?: { value: string } }>({ global: { value: '' } });
     const showDialog = ref(false);
 
@@ -97,8 +99,6 @@ export default defineComponent({
       if (!selectedDate.value) return;
       try {
         const year = selectedDate.value.getFullYear();
-        console.log(selectedDate);
-        console.log(selectedDate.value.getFullYear());
         const month = (selectedDate.value.getMonth() + 1).toString().padStart(2, '0');
         const day = selectedDate.value.getDate().toString().padStart(2, '0');
         const formattedDate = `${year}-${month}-${day}`;
@@ -118,6 +118,7 @@ export default defineComponent({
         const response = await axios.post('http://www.my-dashboard.net:3000/api/todos', newTodo.value);
         todos.value.push(response.data);
         newTodo.value = {
+          done: false,
           title: '',
           description: '',
           status: 'pending',
@@ -130,7 +131,6 @@ export default defineComponent({
       }
     };
 
-    // Methode in der setup-Funktion
     const showSuccessIcon = ref(false);
 
     const deleteTodoWithAnimation = async (id: number) => {
@@ -166,13 +166,11 @@ export default defineComponent({
       fetchTodos();
     };
 
-    // Methode in der setup-Funktion
     const priorityClass = (priority: string) => {
       return priority.toLowerCase();
     };
 
-    // Methode zur Bestimmung der Zeilenklasse basierend auf der Priorität
-    const priorityRowClass = (rowData: Todo) => {
+    const priorityRowClass = (rowData: ToDo) => {
       return {
         'low-row': rowData.priority === 'low',
         'medium-row': rowData.priority === 'medium',
@@ -180,7 +178,6 @@ export default defineComponent({
       };
     };
 
-// Methode zur Bestimmung des Icons basierend auf der Priorität
     const priorityIcon = (priority: string) => {
       switch (priority) {
         case 'low':
@@ -194,7 +191,7 @@ export default defineComponent({
       }
     };
 
-    const markAsDone = async (todo: Todo) => {
+    const markAsDone = async (todo: ToDo) => {
       try {
         todo.done = true;
         await axios.put(`http://www.my-dashboard.net:3000/api/todos/${todo.id}`, todo);
@@ -203,13 +200,13 @@ export default defineComponent({
       }
     };
 
-    const isDoneClass = (rowData: Todo) => {
+    const isDoneClass = (rowData: ToDo) => {
       return rowData.done ? 'done-row' : '';
     };
 
     const prevDay = () => {
       if (selectedDate.value) {
-        const newDate = new Date(selectedDate.value);
+        const newDate = new Date(selectedDate.value.toDateString());
         newDate.setDate(newDate.getDate() - 1);
         selectedDate.value = newDate;
         fetchTodos();
@@ -218,7 +215,7 @@ export default defineComponent({
 
     const nextDay = () => {
       if (selectedDate.value) {
-        const newDate = new Date(selectedDate.value);
+        const newDate = new Date(selectedDate.value.toDateString());
         newDate.setDate(newDate.getDate() + 1);
         selectedDate.value = newDate;
         fetchTodos();
@@ -226,19 +223,19 @@ export default defineComponent({
     };
 
     return {
-      todos,
+      filters,
       newTodo,
+      selectedDate,
+      showDialog,
+      showSuccessIcon,
+      todos,
       addTodo,
       deleteTodo,
-      selectedDate,
       fetchTodos,
-      filters,
-      showDialog,
       toggleDialog,
       onDateChange,
       priorityClass,
       deleteTodoWithAnimation,
-      showSuccessIcon,
       priorityRowClass,
       priorityIcon,
       markAsDone,
@@ -265,30 +262,11 @@ export default defineComponent({
 }
 
 .todo-container {
-  max-width: 800px;
   margin: auto;
   padding: 20px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.todo-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
-}
-
-.todo-table th {
-  background: #f9f9f9;
-  padding: 10px;
-  text-align: left;
-}
-
-.todo-table td {
-  background: #ffffff;
-  padding: 10px;
-  border-radius: 8px;
 }
 
 .low-row {
@@ -306,13 +284,6 @@ export default defineComponent({
 .done-row {
   text-decoration: line-through;
   color: gray;
-}
-
-.action-button {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1.2em;
 }
 
 .add-todo-dialog {
@@ -340,4 +311,9 @@ export default defineComponent({
 .add-todo-dialog button:hover {
   background-color: #0056b3;
 }
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.25rem 1rem;
+}
+
 </style>
