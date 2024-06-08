@@ -2,11 +2,15 @@
   <div class="todo-container">
     <h1>ToDo List</h1>
     <div class="flex-container">
-      <Button @click="toggleDialog" label="Add ToDo" icon="pi pi-plus" class="flex-item"/>
+      <Button @click="prevDay" icon="pi pi-chevron-left" class="flex-item"/>
       <Calendar v-model="selectedDate" dateFormat="dd.mm.yy" showIcon class="flex-item"/>
+      <Button @click="nextDay" icon="pi pi-chevron-right" class="flex-item"/>
+    </div>
+    <div class="flex-container">
+      <Button @click="toggleDialog" label="Add ToDo" icon="pi pi-plus" class="flex-item"/>
     </div>
     <Dialog :modal="true" :closeOnEscape="true" :closable="true" v-model:visible="showDialog" header="Neues ToDo">
-      <form @submit.prevent="addTodo" class="todo-form">
+      <form @submit.prevent="addTodo" class="add-todo-dialog">
         <input v-model="newTodo.title" placeholder="Title" required />
         <input v-model="newTodo.description" placeholder="Description" />
         <select v-model="newTodo.priority">
@@ -18,7 +22,7 @@
         <button type="submit">Add ToDo</button>
       </form>
     </Dialog>
-    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
+    <DataTable :value="todos" class="todo-table" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -32,14 +36,7 @@
       </template>
       <template #empty> No entries found. </template>
       <template #loading> Loading data. Please wait. </template>
-      <Column field="title" header="Title" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern">
-        <template #filter>
-          <div class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <InputText v-model="globalFilters['title']" @input="onFilter('title', $event.target.value)" placeholder="Filtern" />
-          </div>
-        </template>
-      </Column>
+      <Column field="title" header="Title" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
       <Column field="description" header="Description" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
       <Column field="status" header="Status" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
       <Column field="priority" header="Priority" sortable filter filterMatchMode="contains" filterPlaceholder="Filtern">
@@ -49,12 +46,11 @@
       </Column>
       <Column header="Actions" bodyStyle="text-align:center">
         <template #body="slotProps">
-          <Button icon="pi pi-check" @click="markAsDone(slotProps.data)" />
-          <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTodoWithAnimation(slotProps.data.id)" />
+          <button class="action-button" @click="markAsDone(slotProps.data)"><i class="pi pi-check p-button-success"></i></button>
+          <button class="action-button" @click="deleteTodoWithAnimation(slotProps.data.id)"><i class="pi pi-trash p-button-danger"></i></button>
         </template>
       </Column>
     </DataTable>
-
     <!-- Erfolgsicon -->
     <i v-if="showSuccessIcon" class="pi pi-check success-icon"></i>
   </div>
@@ -101,6 +97,8 @@ export default defineComponent({
       if (!selectedDate.value) return;
       try {
         const year = selectedDate.value.getFullYear();
+        console.log(selectedDate);
+        console.log(selectedDate.value.getFullYear());
         const month = (selectedDate.value.getMonth() + 1).toString().padStart(2, '0');
         const day = selectedDate.value.getDate().toString().padStart(2, '0');
         const formattedDate = `${year}-${month}-${day}`;
@@ -209,6 +207,24 @@ export default defineComponent({
       return rowData.done ? 'done-row' : '';
     };
 
+    const prevDay = () => {
+      if (selectedDate.value) {
+        const newDate = new Date(selectedDate.value);
+        newDate.setDate(newDate.getDate() - 1);
+        selectedDate.value = newDate;
+        fetchTodos();
+      }
+    };
+
+    const nextDay = () => {
+      if (selectedDate.value) {
+        const newDate = new Date(selectedDate.value);
+        newDate.setDate(newDate.getDate() + 1);
+        selectedDate.value = newDate;
+        fetchTodos();
+      }
+    };
+
     return {
       todos,
       newTodo,
@@ -227,6 +243,8 @@ export default defineComponent({
       priorityIcon,
       markAsDone,
       isDoneClass,
+      prevDay,
+      nextDay,
     };
   }
 });
@@ -234,48 +252,11 @@ export default defineComponent({
 </script>
 
 <style>
-todo-container {
-  margin: auto;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-}
-
-form input,
-form select,
-form button {
-  padding: 8px;
-  font-size: 0.9em;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 8px;
-  border: 1px solid #ddd;
-}
-
-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button:hover {
-  background: #0056b3;
-}
-
 .flex-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
 }
 
@@ -283,96 +264,80 @@ button:hover {
   margin: 0 5px;
 }
 
-.todo-form {
+.todo-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.todo-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.todo-table th {
+  background: #f9f9f9;
+  padding: 10px;
+  text-align: left;
+}
+
+.todo-table td {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.low-row {
+  background-color: #e6ffed; /* Helles Grün für niedrige Priorität */
+}
+
+.medium-row {
+  background-color: #fff5e6; /* Helles Gelb für mittlere Priorität */
+}
+
+.high-row {
+  background-color: #ffe6e6; /* Helles Rot für hohe Priorität */
+}
+
+.done-row {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.action-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.add-todo-dialog {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.todo-form input,
-.todo-form select,
-.todo-form button {
-  padding: 8px;
+.add-todo-dialog input,
+.add-todo-dialog select,
+.add-todo-dialog button {
+  padding: 10px;
   font-size: 1em;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
 
-.todo-form button {
+.add-todo-dialog button {
   background-color: #007bff;
   color: white;
   border: none;
   cursor: pointer;
 }
 
-.todo-form button:hover {
+.add-todo-dialog button:hover {
   background-color: #0056b3;
-}
-
-/* Styles für die Prioritäten */
-.low {
-  color: green;
-  font-weight: bold;
-}
-
-.medium {
-  color: orange;
-  font-weight: bold;
-}
-
-.high {
-  color: red;
-  font-weight: bold;
-}
-
-/* Styles für das Erfolgsicon */
-.success-icon {
-  color: green;
-  font-size: 2em;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: fadeOut 2s forwards;
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Styles für die Zeilenhintergrundfarben */
-.low-row {
-  background-color: #d4edda; /* Helles Grün für niedrige Priorität */
-}
-
-.medium-row {
-  background-color: #fff3cd; /* Helles Gelb für mittlere Priorität */
-}
-
-.high-row {
-  background-color: #f8d7da;
-}
-
-/* Styles für die Icons */
-.low-icon {
-  color: green;
-}
-
-.medium-icon {
-  color: orange;
-}
-
-.high-icon {
-  color: red;
-}
-
-.done-row {
-  text-decoration: line-through;
-  color: gray;
 }
 </style>
