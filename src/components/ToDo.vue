@@ -21,7 +21,7 @@
         <button type="submit">Add ToDo</button>
       </form>
     </Dialog>
-    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="priorityRowClass">
+    <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="getRowClass">
       <template #header>
         <div class="flex justify-between">
           <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -45,7 +45,7 @@
       </Column>
       <Column header="Actions" bodyStyle="text-align:center">
         <template #body="slotProps">
-          <Button icon="pi pi-check" @click="markAsDone(slotProps.data)" />
+          <Button v-if="!isDone(slotProps.data)" icon="pi pi-check" @click="markAsDone(slotProps.data)" />
           <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTodoWithAnimation(slotProps.data.id)" />
         </template>
       </Column>
@@ -170,12 +170,24 @@ export default defineComponent({
       return priority.toLowerCase();
     };
 
-    const priorityRowClass = (rowData: ToDo) => {
-      return {
-        'low-row': rowData.priority === 'low',
-        'medium-row': rowData.priority === 'medium',
-        'high-row': rowData.priority === 'high'
-      };
+    const getRowClass = (rowData: ToDo) => {
+      let classes = '';
+
+      // Add priority class
+      if (rowData.priority === 'low') {
+        classes += ' low-row';
+      } else if (rowData.priority === 'medium') {
+        classes += ' medium-row';
+      } else if (rowData.priority === 'high') {
+        classes += ' high-row';
+      }
+
+      // Add done class if the task is done
+      if (rowData.done) {
+        classes += ' done-row';
+      }
+
+      return classes.trim();
     };
 
     const priorityIcon = (priority: string) => {
@@ -193,15 +205,30 @@ export default defineComponent({
 
     const markAsDone = async (todo: ToDo) => {
       try {
-        todo.done = true;
-        await axios.put(`http://www.my-dashboard.net:3000/api/todos/${todo.id}`, todo);
+        const updatedTodo = {
+          ...todo,
+          done: true,
+          // Formatiere das Datum korrekt, ohne Zeitzonenverschiebung
+          due_date: formatDate(todo.due_date),
+        };
+        await axios.put(`http://www.my-dashboard.net:3000/api/todos/${todo.id}`, updatedTodo);
+        todo.done = true; // Lokale Aktualisierung
       } catch (error) {
         console.error('Error marking todo as done:', error);
       }
     };
 
-    const isDoneClass = (rowData: ToDo) => {
-      return rowData.done ? 'done-row' : '';
+// Funktion zum Formatieren des Datums ohne Zeitzonenverschiebung
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const isDone = (rowData: ToDo): boolean => {
+      return rowData.done ? true : false;
     };
 
     const prevDay = () => {
@@ -236,10 +263,10 @@ export default defineComponent({
       onDateChange,
       priorityClass,
       deleteTodoWithAnimation,
-      priorityRowClass,
+      getRowClass,
       priorityIcon,
       markAsDone,
-      isDoneClass,
+      isDone,
       prevDay,
       nextDay,
     };
