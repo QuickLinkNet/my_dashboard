@@ -18,8 +18,23 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
 
-export PATH=$PATH:/volume1/.@plugins/AppCentral/nodejs/bin
 
-npx tsc server.ts
+-----
 
-mysql -h 192.168.178.14 -u root my_dashboard < db-setup.sql
+##Run Frontend Server
+- npm run dev
+
+-----
+
+##Add npm path on nas
+- export PATH=$PATH:/volume1/.@plugins/AppCentral/nodejs/bin
+
+-----
+
+##Transpile server.ts
+- npx tsc server.ts
+
+-----
+
+##Install DB
+- mysql -h 192.168.178.14 -u root my_dashboard < db-setup.sql
