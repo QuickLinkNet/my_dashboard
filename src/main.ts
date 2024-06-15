@@ -5,7 +5,6 @@ import PrimeVue from 'primevue/config';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCheckCircle, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import ToastService from 'primevue/toastservice';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';

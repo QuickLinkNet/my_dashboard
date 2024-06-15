@@ -24,12 +24,11 @@
     <DataTable :value="todos" paginator :rows="10" :filters="filters" :globalFilterFields="['title', 'description', 'priority', 'status']" filterDisplay="menu" showGridlines :rowClass="getRowClass">
       <template #header>
         <div class="flex justify-between">
-          <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
           <IconField iconPosition="left">
             <InputIcon>
               <i class="pi pi-search" />
             </InputIcon>
-            <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+            <InputText v-model="filters['global']" placeholder="Keyword Search" />
           </IconField>
         </div>
       </template>
@@ -59,7 +58,7 @@
 <script lang="ts">
 import {defineComponent, ref, onMounted, watch} from 'vue';
 import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
+import DataTable, {DataTableFilterMeta} from 'primevue/datatable';
 import Column from 'primevue/column';
 import Calendar from 'primevue/calendar';
 import Dialog from 'primevue/dialog';
@@ -92,7 +91,14 @@ export default defineComponent({
       due_date: new Date().toISOString().split('T')[0]
     });
     const selectedDate = ref<Date>(new Date());
-    const filters = ref<{ global?: { value: string } }>({ global: { value: '' } });
+    interface Filters extends DataTableFilterMeta {
+      global: string; // Global search value (string for simplicity)
+    }
+
+    const filters: Filters = {
+      global: "", // Initial empty string for global search
+      // You can add other filters here using DataTableFilterMeta properties
+    };
     const showDialog = ref(false);
 
     const fetchTodos = async () => {
@@ -171,23 +177,12 @@ export default defineComponent({
     };
 
     const getRowClass = (rowData: ToDo) => {
-      let classes = '';
-
-      // Add priority class
-      if (rowData.priority === 'low') {
-        classes += ' low-row';
-      } else if (rowData.priority === 'medium') {
-        classes += ' medium-row';
-      } else if (rowData.priority === 'high') {
-        classes += ' high-row';
-      }
-
-      // Add done class if the task is done
-      if (rowData.done) {
-        classes += ' done-row';
-      }
-
-      return classes.trim();
+      return {
+        'low-row': rowData.priority === 'low',
+        'medium-row': rowData.priority === 'medium',
+        'high-row': rowData.priority === 'high',
+        'done-row': rowData.done,
+      };
     };
 
     const priorityIcon = (priority: string) => {

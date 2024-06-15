@@ -56,7 +56,7 @@ var app = express();
 app.use(cors());
 app.use(bodyParser.json());
 var db = mysql.createConnection({
-    host: '192.168.178.14',
+    host: '192.168.2.49',
     user: 'root',
     password: '',
     database: 'my_dashboard'
