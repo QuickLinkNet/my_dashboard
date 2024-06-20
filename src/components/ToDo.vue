@@ -28,7 +28,7 @@
             <InputIcon>
               <i class="pi pi-search" />
             </InputIcon>
-            <InputText v-model="filters['global']" placeholder="Keyword Search" />
+            <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
           </IconField>
         </div>
       </template>
@@ -91,14 +91,7 @@ export default defineComponent({
       due_date: new Date().toISOString().split('T')[0]
     });
     const selectedDate = ref<Date>(new Date());
-    interface Filters extends DataTableFilterMeta {
-      global: string; // Global search value (string for simplicity)
-    }
-
-    const filters: Filters = {
-      global: "", // Initial empty string for global search
-      // You can add other filters here using DataTableFilterMeta properties
-    };
+    const filters = ref<{ global?: { value: string } }>({ global: { value: '' } });
     const showDialog = ref(false);
 
     const fetchTodos = async () => {
