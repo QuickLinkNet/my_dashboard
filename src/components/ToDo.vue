@@ -58,7 +58,7 @@
 <script lang="ts">
 import {defineComponent, ref, onMounted, watch} from 'vue';
 import Button from 'primevue/button';
-import DataTable, {DataTableFilterMeta} from 'primevue/datatable';
+import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Calendar from 'primevue/calendar';
 import Dialog from 'primevue/dialog';
@@ -67,6 +67,7 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import axios from 'axios';
 import { ToDo } from "../types/ToDo";
+import {FilterMatchMode} from "primevue/api";
 
 export default defineComponent({
   name: 'ToDoComponent',
@@ -91,7 +92,14 @@ export default defineComponent({
       due_date: new Date().toISOString().split('T')[0]
     });
     const selectedDate = ref<Date>(new Date());
-    const filters = ref<{ global?: { value: string } }>({ global: { value: '' } });
+    const filters = ref({
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      representative: { value: null, matchMode: FilterMatchMode.IN },
+      status: { value: null, matchMode: FilterMatchMode.EQUALS },
+      verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+    });
     const showDialog = ref(false);
 
     const fetchTodos = async () => {

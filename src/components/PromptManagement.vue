@@ -79,7 +79,14 @@ const editingRows = ref([]);
 const editingCache = ref({});
 const editPromptData = ref({});
 const globalFilters = ref({});
-const filters = ref();
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  representative: { value: null, matchMode: FilterMatchMode.IN },
+  status: { value: null, matchMode: FilterMatchMode.EQUALS },
+  verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+});
 const loading = ref(true);
 const parsedPrompts = computed(() => {
   if(jsonInput.value !== "") {
