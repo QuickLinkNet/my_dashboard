@@ -186,6 +186,15 @@ app.delete('/api/prompts/:id', (req: Request, res: Response) => {
     });
 });
 
+app.get('/api/prompts/pending', (req: Request, res: Response) => {
+    db.query('SELECT * FROM prompts WHERE successful_runs < expected_runs', (err, results) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        res.json(results);
+    });
+});
+
 app.get('/api/health', (req: Request, res: Response) => {
     res.status(200).send('Backend verbunden');
 });

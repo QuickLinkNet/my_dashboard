@@ -125,16 +125,24 @@ const validatePrompts = () => {
 const savePrompts = async () => {
   try {
     const modifiedPrompts = parsedPrompts.value.map(prompt => {
-      let keywords = prompt.keywords.split(', ').map(keyword => keyword.trim());
+      let keywords;
+
+      // Falls keywords als Array kommen, konvertiere es in einen kommagetrennten String
+      if (Array.isArray(prompt.keywords)) {
+        keywords = prompt.keywords.join(", ");
+      } else {
+        keywords = prompt.keywords;
+      }
+
       const requiredKeywords = ["generative ai", "generativ", "ki"];
 
       requiredKeywords.forEach(keyword => {
         if (!keywords.includes(keyword)) {
-          keywords.push(keyword);
+          keywords += `, ${keyword}`;
         }
       });
 
-      return { ...prompt, keywords: keywords.join(", "), expected_runs: "1", successful_runs: "0" };
+      return { ...prompt, keywords, expected_runs: "10", successful_runs: "0" };
     });
 
     await axios.post('http://www.my-dashboard.net:3000/api/prompts', modifiedPrompts);
@@ -145,6 +153,7 @@ const savePrompts = async () => {
     console.error('Fehler beim Speichern der Prompts:', error);
   }
 };
+
 
 const toggleOverlay = () => {
   showOverlay.value = !showOverlay.value;
