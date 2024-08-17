@@ -151,6 +151,44 @@ app.get('/api/prompts', (req: Request, res: Response) => {
     });
 });
 
+app.get('/api/prompts/pending', (req: Request, res: Response) => {
+    db.query('SELECT * FROM prompts WHERE successful_runs < expected_runs LIMIT 5', (err, results) => {
+        if (err) {
+            return res.status(500).send(err.message);
+        }
+        res.json(results);
+    });
+});
+
+app.put('/api/prompts/:id/increment-success', (req: Request, res: Response) => {
+    const id = req.params.id;
+
+    // Zuerst den aktuellen Wert von successful_runs abrufen
+    db.query('SELECT successful_runs FROM prompts WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            return res.status(500).send('Fehler beim Abrufen der Daten: ' + err.message);
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Prompt nicht gefunden');
+        }
+
+        const currentSuccessfulRuns = results[0].successful_runs;
+
+        // successful_runs um 1 erhöhen
+        const newSuccessfulRuns = currentSuccessfulRuns + 1;
+
+        // Aktualisiere den neuen Wert in der Datenbank
+        db.query('UPDATE prompts SET successful_runs = ? WHERE id = ?', [newSuccessfulRuns, id], (updateErr, updateResult) => {
+            if (updateErr) {
+                return res.status(500).send('Fehler beim Aktualisieren der Daten: ' + updateErr.message);
+            }
+
+            res.json({ id, successful_runs: newSuccessfulRuns });
+        });
+    });
+});
+
 app.get('/api/prompts/:id', (req: Request, res: Response) => {
     const id = req.params.id;
     db.query('SELECT * FROM prompts WHERE id = ?', [id], (err, result) => {
@@ -183,15 +221,6 @@ app.delete('/api/prompts/:id', (req: Request, res: Response) => {
             return res.status(500).send(err);
         }
         res.send('Prompt gelöscht');
-    });
-});
-
-app.get('/api/prompts/pending', (req: Request, res: Response) => {
-    db.query('SELECT * FROM prompts WHERE successful_runs < expected_runs', (err, results) => {
-        if (err) {
-            return res.status(500).send(err.message);
-        }
-        res.json(results);
     });
 });
 
