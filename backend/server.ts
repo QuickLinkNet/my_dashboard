@@ -184,7 +184,14 @@ app.put('/api/prompts/:id/increment-success', (req: Request, res: Response) => {
                 return res.status(500).send('Fehler beim Aktualisieren der Daten: ' + updateErr.message);
             }
 
-            res.json({ id, successful_runs: newSuccessfulRuns });
+            // Nach erfolgreicher Aktualisierung die Erfolgsstatistik speichern
+            db.query('INSERT INTO prompt_success_logs (prompt_id) VALUES (?)', [id], (logErr, logResult) => {
+                if (logErr) {
+                    return res.status(500).send('Fehler beim Speichern der Erfolgsstatistik: ' + logErr.message);
+                }
+
+                res.json({ id, successful_runs: newSuccessfulRuns });
+            });
         });
     });
 });
