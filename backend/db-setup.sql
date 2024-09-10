@@ -37,3 +37,12 @@ CREATE TABLE IF NOT EXISTS prompt_success_logs (
                                         success_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                         FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE
 );
+
+-- Rename der Tabelle prompt_success_logs in prompt_log
+RENAME TABLE prompt_success_logs TO prompt_log;
+
+-- Umbenennen der Spalte success_time in date
+ALTER TABLE prompt_log CHANGE COLUMN success_time date DATETIME NOT NULL;
+
+-- Hinzufügen einer neuen Spalte 'success', um zu speichern, ob der Prompt erfolgreich war
+ALTER TABLE prompt_log ADD COLUMN success BOOLEAN NOT NULL DEFAULT TRUE;

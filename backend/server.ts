@@ -152,7 +152,10 @@ app.get('/api/prompts', (req: Request, res: Response) => {
 });
 
 app.get('/api/prompts/pending', (req: Request, res: Response) => {
-    db.query('SELECT * FROM prompts WHERE successful_runs < expected_runs LIMIT 5', (err, results) => {
+    // Limit dynamisch aus der Abfrage lesen, Standardwert 5
+    const limit = parseInt(req.query.limit as string, 10) || 5;
+
+    db.query('SELECT * FROM prompts WHERE successful_runs < expected_runs LIMIT ?', [limit], (err, results) => {
         if (err) {
             return res.status(500).send(err.message);
         }
@@ -163,7 +166,6 @@ app.get('/api/prompts/pending', (req: Request, res: Response) => {
 app.put('/api/prompts/:id/increment-success', (req: Request, res: Response) => {
     const id = req.params.id;
 
-    // Zuerst den aktuellen Wert von successful_runs abrufen
     db.query('SELECT successful_runs FROM prompts WHERE id = ?', [id], (err, results) => {
         if (err) {
             return res.status(500).send('Fehler beim Abrufen der Daten: ' + err.message);
@@ -174,25 +176,64 @@ app.put('/api/prompts/:id/increment-success', (req: Request, res: Response) => {
         }
 
         const currentSuccessfulRuns = results[0].successful_runs;
-
-        // successful_runs um 1 erhöhen
         const newSuccessfulRuns = currentSuccessfulRuns + 1;
 
-        // Aktualisiere den neuen Wert in der Datenbank
         db.query('UPDATE prompts SET successful_runs = ? WHERE id = ?', [newSuccessfulRuns, id], (updateErr, updateResult) => {
             if (updateErr) {
                 return res.status(500).send('Fehler beim Aktualisieren der Daten: ' + updateErr.message);
             }
 
-            // Nach erfolgreicher Aktualisierung die Erfolgsstatistik speichern
-            db.query('INSERT INTO prompt_success_logs (prompt_id) VALUES (?)', [id], (logErr, logResult) => {
+            const logEntry = {
+                prompt_id: id,
+                date: new Date(),
+                success: 1
+            };
+
+            db.query('INSERT INTO prompt_log SET ?', logEntry, (logErr, logResult) => {
                 if (logErr) {
-                    return res.status(500).send('Fehler beim Speichern der Erfolgsstatistik: ' + logErr.message);
+                    return res.status(500).send('Fehler beim Speichern der Log-Daten: ' + logErr.message);
                 }
 
                 res.json({ id, successful_runs: newSuccessfulRuns });
             });
         });
+    });
+});
+
+app.get('/api/prompt-success-logs', (req: Request, res: Response) => {
+    const { start_date, end_date, prompt_id, limit = 100 } = req.query;
+
+    // Basis SQL-Query
+    let query = 'SELECT * FROM prompt_log WHERE 1=1';
+    const queryParams: any[] = [];
+
+    // Zeiträume dynamisch filtern
+    if (start_date) {
+        query += ' AND success_time >= ?';
+        queryParams.push(start_date);
+    }
+
+    if (end_date) {
+        query += ' AND success_time <= ?';
+        queryParams.push(end_date);
+    }
+
+    // Nach Prompt filtern, falls prompt_id angegeben ist
+    if (prompt_id) {
+        query += ' AND prompt_id = ?';
+        queryParams.push(prompt_id);
+    }
+
+    // Limit zur Begrenzung der Ergebnismenge
+    query += ' ORDER BY success_time DESC LIMIT ?';
+    queryParams.push(parseInt(limit as string, 10));
+
+    // Führe die Datenbankabfrage aus
+    db.query(query, queryParams, (err, results) => {
+        if (err) {
+            return res.status(500).send('Fehler beim Abrufen der Logs: ' + err.message);
+        }
+        res.json(results);
     });
 });
 
