@@ -37,4 +37,4 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
 -----
 
 ##Install DB
-- mysql -h 192.168.178.14 -u root my_dashboard < db-setup.sql
+- mysql -h 192.168.2.49 -u root my_dashboard < db-setup.sql
