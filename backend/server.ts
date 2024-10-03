@@ -183,57 +183,8 @@ app.put('/api/prompts/:id/increment-success', (req: Request, res: Response) => {
                 return res.status(500).send('Fehler beim Aktualisieren der Daten: ' + updateErr.message);
             }
 
-            const logEntry = {
-                prompt_id: id,
-                date: new Date(),
-                success: 1
-            };
-
-            db.query('INSERT INTO prompt_log SET ?', logEntry, (logErr, logResult) => {
-                if (logErr) {
-                    return res.status(500).send('Fehler beim Speichern der Log-Daten: ' + logErr.message);
-                }
-
-                res.json({ id, successful_runs: newSuccessfulRuns });
-            });
+            res.json({ id, successful_runs: newSuccessfulRuns });
         });
-    });
-});
-
-app.get('/api/prompt-success-logs', (req: Request, res: Response) => {
-    const { start_date, end_date, prompt_id, limit = 100 } = req.query;
-
-    // Basis SQL-Query
-    let query = 'SELECT * FROM prompt_log WHERE 1=1';
-    const queryParams: any[] = [];
-
-    // Zeiträume dynamisch filtern
-    if (start_date) {
-        query += ' AND success_time >= ?';
-        queryParams.push(start_date);
-    }
-
-    if (end_date) {
-        query += ' AND success_time <= ?';
-        queryParams.push(end_date);
-    }
-
-    // Nach Prompt filtern, falls prompt_id angegeben ist
-    if (prompt_id) {
-        query += ' AND prompt_id = ?';
-        queryParams.push(prompt_id);
-    }
-
-    // Limit zur Begrenzung der Ergebnismenge
-    query += ' ORDER BY success_time DESC LIMIT ?';
-    queryParams.push(parseInt(limit as string, 10));
-
-    // Führe die Datenbankabfrage aus
-    db.query(query, queryParams, (err, results) => {
-        if (err) {
-            return res.status(500).send('Fehler beim Abrufen der Logs: ' + err.message);
-        }
-        res.json(results);
     });
 });
 
@@ -248,6 +199,33 @@ app.get('/api/prompts/:id', (req: Request, res: Response) => {
         } else {
             res.status(404).send('Prompt nicht gefunden');
         }
+    });
+});
+
+app.get('/api/logs', (req: Request, res: Response) => {
+    const { prompt_id, status, limit = 100 } = req.query;
+
+    let query = 'SELECT * FROM log WHERE 1=1';
+    const queryParams: any[] = [];
+
+    if (prompt_id) {
+        query += ' AND prompt_id = ?';
+        queryParams.push(prompt_id);
+    }
+
+    if (status) {
+        query += ' AND status = ?';
+        queryParams.push(status);
+    }
+
+    query += ' ORDER BY timestamp DESC LIMIT ?';
+    queryParams.push(parseInt(limit as string, 10));
+
+    db.query(query, queryParams, (err, results) => {
+        if (err) {
+            return res.status(500).send('Fehler beim Abrufen der Logs: ' + err.message);
+        }
+        res.json(results);
     });
 });
 
@@ -286,6 +264,28 @@ app.post('/api/todos', (req: Request, res: Response) => {
             return res.status(500).send(err);
         }
         res.json({ id: result.insertId, ...newTodo });
+    });
+});
+
+app.post('/api/log', (req: Request, res: Response) => {
+    const { prompt_id, status, error_message, details } = req.body;
+
+    if (!prompt_id) {
+        return res.status(400).send('prompt_id darf nicht null oder leer sein');
+    }
+
+    const logEntry = {
+        prompt_id,
+        status,
+        error_message: error_message || null,
+        details: details || null
+    };
+
+    db.query('INSERT INTO log SET ?', logEntry, (err, result) => {
+        if (err) {
+            return res.status(500).send('Fehler beim Speichern der Log-Daten: ' + err.message);
+        }
+        res.json({ id: result.insertId, ...logEntry });
     });
 });
 
