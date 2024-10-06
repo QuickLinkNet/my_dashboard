@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container-fluid">
     <FlexOverlay :isOpen="showOverlay" @close="showOverlay = false">
       <template #default>
         <h2>Neuer Prompt</h2>
@@ -10,7 +10,6 @@
         </div>
         <div class="buttonWrapper">
           <button @click="savePrompts" :disabled="!validationPassed">Speichern</button>
-          <button @click="showOverlay = false">Abbrechen</button>
         </div>
       </template>
     </FlexOverlay>
@@ -27,39 +26,52 @@
       </template>
     </FlexOverlay>
 
-    <DataTable :filters="filters" :globalFilterFields="['title', 'prompt', 'keywords']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} prompts"
-               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown">
-      <template #header>
-        <div class="flex justify-between">
-          <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
-          <Button @click="toggleOverlay" severity="secondary">Neue Prompt´s</Button>
-          <IconField iconPosition="left">
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
-          </IconField>
-        </div>
-      </template>
-      <template #empty> No entries found. </template>
-      <template #loading> Loading customers data. Please wait. </template>
-      <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
-        <template #filter>
-          <div class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <InputText v-model="globalFilters['title']" @input="onFilter('title', $event.target.value)" placeholder="Filtern" />
+    <div class="flex justify-between">
+      <Button @click="showPromptList = true" label="Prompt List" />
+      <Button @click="showPromptList = false" label="Usage Statistics" />
+    </div>
+
+    <div class="row" v-if="showPromptList">
+      <DataTable :filters="filters" :globalFilterFields="['title', 'prompt', 'keywords']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} prompts"
+                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown">
+        <template #header>
+          <div class="container-fluid">
+            <div class="row">
+              <IconField class="col-xl-12 col-lg-4" iconPosition="left">
+                <InputIcon class="pi pi-search" style="left: 20px">
+                </InputIcon>
+                <InputText class="col-12" v-model="filters['global'].value" placeholder="Keyword Search" />
+              </IconField>
+              <Button class="col-xl-1 col-lg-3 offset-xl-0" type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+              <Button class="col-xl-2 col-lg-3 offset-xl-6 flex-column" @click="toggleOverlay" severity="secondary">Neue Prompt´s</Button>
+            </div>
           </div>
         </template>
-      </Column>
-      <Column field="prompt" header="Prompt" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-      <Column field="keywords" header="Keywords" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-      <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center"></Column>
-    </DataTable>
+        <template #empty> No entries found. </template>
+        <template #loading> Loading customers data. Please wait. </template>
+        <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
+          <template #filter>
+            <div class="p-input-icon-left">
+              <i class="pi pi-search"></i>
+              <InputText v-model="globalFilters['title']" @input="onFilter('title', $event.target.value)" placeholder="Filtern" />
+            </div>
+          </template>
+        </Column>
+        <Column field="prompt" header="Prompt" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
+        <Column field="keywords" header="Keywords" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
+        <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center"></Column>
+      </DataTable>
+    </div>
+
+    <div v-else>
+      <!-- Neue Statistik-Komponente -->
+      <PromptStatistics :logs="logs" />
+    </div>
   </div>
 </template>
 
 <script setup>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted, computed, watch} from 'vue';
 import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
@@ -69,6 +81,10 @@ import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import Button from 'primevue/button'
+import PromptStatistics from "./PromptStatistics.vue";
+
+const logs = ref([]);
+const showPromptList = ref(true);
 
 const showOverlay = ref(false);
 const showEditOverlay = ref(false);
@@ -106,6 +122,22 @@ const initFilters = () => {
     keywords: { value: null, matchMode: FilterMatchMode.CONTAINS },
   };
 };
+
+const fetchLogs = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/prompt-success-logs`);
+    logs.value = response.data;
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+  }
+};
+
+// Wenn die Statistik-Ansicht geöffnet wird, Logs abrufen
+watch(showPromptList, (newValue) => {
+  if (!newValue) {
+    fetchLogs();
+  }
+});
 
 initFilters();
 
@@ -145,7 +177,7 @@ const savePrompts = async () => {
       return { ...prompt, keywords, expected_runs: "10", successful_runs: "0" };
     });
 
-    await axios.post('http://www.my-dashboard.net:3000/api/prompts', modifiedPrompts);
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/prompts`, modifiedPrompts);
     await fetchPrompts();
     showOverlay.value = false;
     jsonInput.value = '';
@@ -165,7 +197,7 @@ const toggleEditOverlay = (isOpen) => {
 
 const fetchPrompts = async () => {
   try {
-    const response = await axios.get('http://www.my-dashboard.net:3000/api/prompts');
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/prompts`);
     prompts.value = response.data.prompts;
   } catch (error) {
     console.error('Fehler beim Abrufen der Prompts:', error);
@@ -190,7 +222,7 @@ const onRowEditCancel = (event) => {
 const onRowEditSave = async (event) => {
   try {
     const editedPrompt = event.data;
-    await axios.put(`http://www.my-dashboard.net:3000/api/prompts/${editedPrompt.id}`, editedPrompt);
+    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/prompts/${editedPrompt.id}`, editedPrompt);
     await fetchPrompts(); // Aktualisiere die Tabelle nach dem Speichern
   } catch (error) {
     console.error('Fehler beim Speichern der Änderungen:', error);
@@ -206,7 +238,7 @@ const onFilter = (value, filter) => {
 const saveEditedPrompt = async () => {
   if (editPromptData.value.title && editPromptData.value.prompt && editPromptData.value.id) {
     try {
-      await axios.put(`http://www.my-dashboard.net:3000/api/prompts/${editPromptData.value.id}`, {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/prompts/${editPromptData.value.id}`, {
         title: editPromptData.value.title,
         prompt: editPromptData.value.prompt,
         keywords: editPromptData.value.keywords,

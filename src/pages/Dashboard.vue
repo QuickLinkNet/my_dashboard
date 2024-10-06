@@ -38,7 +38,7 @@ const nextItemId = ref(0);
 const saveLayout = async () => {
   try {
     const layoutId = 1; // Angenommen, Sie möchten das Layout mit ID 1 aktualisieren
-    await fetch(`http://www.my-dashboard.net:3000/api/layout/${layoutId}`, {
+    await fetch(`${import.meta.env.VITE_API_BASE_URL}/layout/${layoutId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ function addNewItem() {
 
 const fetchLayoutById = async (id) => {
   try {
-    const response = await fetch(`http://www.my-dashboard.net:3000/api/layout/${id}`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/layout/${id}`);
     if (!response.ok) {
       throw new Error('Fehler beim Laden des Layouts');
     }

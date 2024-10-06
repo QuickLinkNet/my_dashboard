@@ -18,10 +18,7 @@ const apiConnected = ref(false);
 
 onMounted(async () => {
   try {
-    const baseUrl = `http://${window.location.hostname}`;
-    const port = 3000;
-
-    const response = await axios.get(`${baseUrl}:${port}/api/health`);
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/health`);
     apiConnected.value = response.status === 200;
   } catch (err) {
     error.value = err.message;
