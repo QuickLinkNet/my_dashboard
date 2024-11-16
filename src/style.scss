@@ -51,11 +51,45 @@
 @import "primeicons/primeicons.css";
 
 /*@tailwind base;*/
-@tailwind components;
-@tailwind utilities;
+//@tailwind components;
+//@tailwind utilities;
 
 body {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+
+    @include breakpoint('s') {
+        font-size: 0.75rem; // Für kleine Bildschirme (max-width: 767px)
+    }
+
+    @include breakpoint('m') {
+        font-size: 0.75rem; // Für mittlere Bildschirme (768px bis 991px)
+    }
+
+    @include breakpoint('l') {
+        font-size: 0.75rem; // Für große Bildschirme (992px bis 1199px)
+    }
+
+    @include breakpoint('xl') {
+        font-size: 0.75rem; // Für extra große Bildschirme (min-width: 1200px)
+    }
+}
+
+.p-datatable {
+    @include breakpoint('s') {
+        font-size: 0.75rem; // Für kleine Bildschirme (max-width: 767px)
+    }
+
+    @include breakpoint('m') {
+        font-size: 0.75rem; // Für mittlere Bildschirme (768px bis 991px)
+    }
+
+    @include breakpoint('l') {
+        font-size: 0.75rem; // Für große Bildschirme (992px bis 1199px)
+    }
+
+    @include breakpoint('xl') {
+        font-size: 0.75rem; // Für extra große Bildschirme (min-width: 1200px)
+    }
 }
 
 /**

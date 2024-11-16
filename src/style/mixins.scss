@@ -1,0 +1,20 @@
+// mixins.scss
+@mixin breakpoint($size) {
+  @if $size == 's' {
+    @media (max-width: 767px) {
+      @content;
+    }
+  } @else if $size == 'm' {
+    @media (min-width: 768px) and (max-width: 991px) {
+      @content;
+    }
+  } @else if $size == 'l' {
+    @media (min-width: 992px) and (max-width: 1199px) {
+      @content;
+    }
+  } @else if $size == 'xl' {
+    @media (min-width: 1200px) {
+      @content;
+    }
+  }
+}

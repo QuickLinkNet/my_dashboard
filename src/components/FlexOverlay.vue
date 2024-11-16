@@ -16,8 +16,6 @@ const props = defineProps({
 
 <style lang="scss">
 
-@import '../assets/scss/colors';
-
 .overlay {
   position: fixed;
   top: 0;

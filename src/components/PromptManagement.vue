@@ -2,90 +2,92 @@
   <div class="container-fluid">
     <FlexOverlay :isOpen="showOverlay" @close="showOverlay = false">
       <template #default>
-        <h2>Neuer Prompt</h2>
+        <h2 class="mb-3">Neuer Prompt</h2>
         <textarea v-model="jsonInput" placeholder="JSON eingeben" @input="validatePrompts"></textarea>
-        <div v-if="validationPassed !== null">
-          <span v-if="validationPassed" style="color: green;">✔ Gültiges JSON</span>
-          <span v-else style="color: red;">✖ Ungültiges JSON</span>
+        <div v-if="validationPassed !== null" class="mt-2">
+          <span v-if="validationPassed" class="text-success">✔ Gültiges JSON</span>
+          <span v-else class="text-danger">✖ Ungültiges JSON</span>
         </div>
-        <div class="buttonWrapper">
-          <button @click="savePrompts" :disabled="!validationPassed">Speichern</button>
+        <div class="d-flex mt-3">
+          <button @click="savePrompts" :disabled="!validationPassed" class="btn btn-primary">Speichern</button>
         </div>
       </template>
     </FlexOverlay>
 
     <FlexOverlay :isOpen="showEditOverlay" @close="toggleEditOverlay(false)">
       <template #default>
-        <h2>Prompt bearbeiten</h2>
-        <textarea v-model="editPromptData.title" placeholder="Title"></textarea>
-        <textarea v-model="editPromptData.prompt" placeholder="Prompt"></textarea>
-        <textarea v-model="editPromptData.keywords" placeholder="Keywords"></textarea>
-        <div class="buttonWrapper">
-          <button @click="saveEditedPrompt">Speichern</button>
+        <h2 class="mb-3">Prompt bearbeiten</h2>
+        <textarea v-model="editPromptData.title" placeholder="Title" class="mb-2"></textarea>
+        <textarea v-model="editPromptData.prompt" placeholder="Prompt" class="mb-2"></textarea>
+        <textarea v-model="editPromptData.keywords" placeholder="Keywords" class="mb-2"></textarea>
+        <div class="d-flex mt-3">
+          <button @click="saveEditedPrompt" class="btn btn-primary">Speichern</button>
         </div>
       </template>
     </FlexOverlay>
 
-    <div class="flex justify-between">
-      <Button @click="showPromptList = true" label="Prompt List" />
-      <Button @click="showPromptList = false" label="Usage Statistics" />
+    <div class="d-flex flex-wrap mb-3 gap-2 button-container">
+      <Button @click="showPromptList = true" label="Prompt List" class="btn-secondary button-responsive" />
+      <Button @click="showPromptList = false" label="Usage Statistics" class="btn-secondary button-responsive" />
     </div>
 
-    <div class="row" v-if="showPromptList">
-      <DataTable :filters="filters" :globalFilterFields="['title', 'prompt', 'keywords']" filterDisplay="menu" :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts" editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel" @row-edit-save="onRowEditSave" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} prompts"
+    <div v-if="showPromptList">
+      <DataTable :filters="filters" :globalFilterFields="['title', 'prompt', 'keywords']" filterDisplay="menu"
+                 :loading="loading" v-model:filters="globalFilters" showGridlines :value="prompts"
+                 editMode="row" :paginator="true" :rows="10" dataKey="id" :editingRows.sync="editingRows"
+                 @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel"
+                 @row-edit-save="onRowEditSave" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} prompts"
                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown">
         <template #header>
-          <div class="container-fluid">
-            <div class="row">
-              <IconField class="col-xl-12 col-lg-4" iconPosition="left">
-                <InputIcon class="pi pi-search" style="left: 20px">
-                </InputIcon>
-                <InputText class="col-12" v-model="filters['global'].value" placeholder="Keyword Search" />
+          <div class="row g-2 mb-2">
+            <div class="col-12 col-md-6">
+              <IconField class="w-100">
+                <InputIcon class="pi pi-search" />
+                <InputText v-model="filters['global'].value" placeholder="Keyword Search" class="w-100" />
               </IconField>
-              <Button class="col-xl-1 col-lg-3 offset-xl-0" type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
-              <Button class="col-xl-2 col-lg-3 offset-xl-6 flex-column" @click="toggleOverlay" severity="secondary">Neue Prompt´s</Button>
+            </div>
+            <div class="col-6 col-md-3">
+              <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" class="w-100" />
+            </div>
+            <div class="col-6 col-md-3">
+              <Button @click="toggleOverlay" severity="secondary" class="w-100">Neue Prompt´s</Button>
             </div>
           </div>
         </template>
-        <template #empty> No entries found. </template>
-        <template #loading> Loading customers data. Please wait. </template>
-        <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern">
-          <template #filter>
-            <div class="p-input-icon-left">
-              <i class="pi pi-search"></i>
-              <InputText v-model="globalFilters['title']" @input="onFilter('title', $event.target.value)" placeholder="Filtern" />
-            </div>
-          </template>
-        </Column>
-        <Column field="prompt" header="Prompt" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-        <Column field="keywords" header="Keywords" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern"></Column>
-        <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center"></Column>
+        <template #empty>
+          <p class="text-center mt-3">Keine Einträge gefunden.</p>
+        </template>
+        <template #loading>
+          <p class="text-center mt-3">Daten werden geladen. Bitte warten...</p>
+        </template>
+        <Column field="title" header="Title" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern" />
+        <Column field="prompt" header="Prompt" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern" />
+        <Column field="keywords" header="Keywords" :sortable="true" :filter="true" filterMatchMode="contains" filterPlaceholder="Filtern" />
+        <Column :rowEditor="true" headerStyle="width:8rem" bodyStyle="text-align:center" />
       </DataTable>
     </div>
 
     <div v-else>
-      <!-- Neue Statistik-Komponente -->
       <PromptStatistics :logs="logs" />
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref, onMounted, computed, watch} from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import FlexOverlay from './FlexOverlay.vue';
 import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { FilterMatchMode, FilterOperator } from 'primevue/api';
+import { FilterMatchMode } from 'primevue/api';
 import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
-import Button from 'primevue/button'
+import Button from 'primevue/button';
 import PromptStatistics from "./PromptStatistics.vue";
 
 const logs = ref([]);
 const showPromptList = ref(true);
-
 const showOverlay = ref(false);
 const showEditOverlay = ref(false);
 const jsonInput = ref('');
@@ -97,16 +99,15 @@ const editPromptData = ref({});
 const globalFilters = ref({});
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  representative: { value: null, matchMode: FilterMatchMode.IN },
-  status: { value: null, matchMode: FilterMatchMode.EQUALS },
-  verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+  title: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  prompt: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  keywords: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 const loading = ref(true);
+
 const parsedPrompts = computed(() => {
-  if(jsonInput.value !== "") {
-    return JSON.parse(jsonInput.value)
+  if (jsonInput.value !== "") {
+    return JSON.parse(jsonInput.value);
   }
 });
 
@@ -118,7 +119,7 @@ const initFilters = () => {
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     title: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    prompts: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    prompt: { value: null, matchMode: FilterMatchMode.CONTAINS },
     keywords: { value: null, matchMode: FilterMatchMode.CONTAINS },
   };
 };
@@ -132,7 +133,6 @@ const fetchLogs = async () => {
   }
 };
 
-// Wenn die Statistik-Ansicht geöffnet wird, Logs abrufen
 watch(showPromptList, (newValue) => {
   if (!newValue) {
     fetchLogs();
@@ -157,23 +157,10 @@ const validatePrompts = () => {
 const savePrompts = async () => {
   try {
     const modifiedPrompts = parsedPrompts.value.map(prompt => {
-      let keywords;
-
-      // Falls keywords als Array kommen, konvertiere es in einen kommagetrennten String
-      if (Array.isArray(prompt.keywords)) {
-        keywords = prompt.keywords.join(", ");
-      } else {
-        keywords = prompt.keywords;
-      }
-
-      const requiredKeywords = ["generative ai", "generativ", "ki"];
-
-      requiredKeywords.forEach(keyword => {
-        if (!keywords.includes(keyword)) {
-          keywords += `, ${keyword}`;
-        }
+      let keywords = Array.isArray(prompt.keywords) ? prompt.keywords.join(", ") : prompt.keywords;
+      ["generative ai", "generativ", "ki"].forEach(keyword => {
+        if (!keywords.includes(keyword)) keywords += `, ${keyword}`;
       });
-
       return { ...prompt, keywords, expected_runs: "10", successful_runs: "0" };
     });
 
@@ -185,7 +172,6 @@ const savePrompts = async () => {
     console.error('Fehler beim Speichern der Prompts:', error);
   }
 };
-
 
 const toggleOverlay = () => {
   showOverlay.value = !showOverlay.value;
@@ -203,7 +189,6 @@ const fetchPrompts = async () => {
     console.error('Fehler beim Abrufen der Prompts:', error);
   }
 };
-
 
 const onRowEditInit = (event) => {
   toggleEditOverlay(true);
@@ -223,15 +208,9 @@ const onRowEditSave = async (event) => {
   try {
     const editedPrompt = event.data;
     await axios.put(`${import.meta.env.VITE_API_BASE_URL}/prompts/${editedPrompt.id}`, editedPrompt);
-    await fetchPrompts(); // Aktualisiere die Tabelle nach dem Speichern
+    await fetchPrompts();
   } catch (error) {
     console.error('Fehler beim Speichern der Änderungen:', error);
-  }
-};
-
-const onFilter = (value, filter) => {
-  if (filter === 'title') {
-    filters.value['global'].value = value;
   }
 };
 
@@ -246,7 +225,6 @@ const saveEditedPrompt = async () => {
 
       await fetchPrompts();
       showEditOverlay.value = false;
-
       console.log('Prompt erfolgreich aktualisiert');
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Prompts:', error);
@@ -262,13 +240,53 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 .buttonWrapper {
   display: flex;
   margin-bottom: 12px;
 }
-
+textarea {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.text-center {
+  text-align: center;
+}
+.text-success {
+  color: green;
+}
+.text-danger {
+  color: red;
+}
 .p-datatable .p-datatable-tbody > tr > td {
   font-size: 12px;
+}
+@media (min-width: 768px) {
+  .button-responsive {
+    flex: 0;
+    width: auto;
+  }
+}
+.gap-2 > * {
+  margin-right: 0.5rem;
+}
+.button-responsive {
+  flex: 1 1 auto;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.button-responsive {
+  flex: 0;
+}
+
+@media (max-width: 991px) {
+  .button-responsive {
+    width: 100%;
+    flex: 1 1 100%;
+  }
 }
 </style>

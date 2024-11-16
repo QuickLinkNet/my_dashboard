@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { createApp } from 'vue'
-import './style.css'
+import './style.scss'
 import App from './App.vue'
 import PrimeVue from 'primevue/config';
 import { library } from "@fortawesome/fontawesome-svg-core";
