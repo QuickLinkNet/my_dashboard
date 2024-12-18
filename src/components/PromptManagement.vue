@@ -26,6 +26,20 @@
       </template>
     </FlexOverlay>
 
+    <FlexOverlay :isOpen="showLeonardoOverlay" @close="showLeonardoOverlay = false">
+      <template #default>
+        <h2 class="mb-3">Neuer Leonardo Prompt</h2>
+        <textarea v-model="leonardoJsonInput" placeholder="JSON eingeben" @input="validateLeonardoPrompts"></textarea>
+        <div v-if="leonardoValidationPassed !== null" class="mt-2">
+          <span v-if="leonardoValidationPassed" class="text-success">✔ Gültiges JSON</span>
+          <span v-else class="text-danger">✖ Ungültiges JSON</span>
+        </div>
+        <div class="d-flex mt-3">
+          <button @click="saveLeonardoPrompts" :disabled="!leonardoValidationPassed" class="btn btn-primary">Speichern</button>
+        </div>
+      </template>
+    </FlexOverlay>
+
     <div class="d-flex flex-wrap mb-3 gap-2 button-container">
       <Button @click="showPromptList = true" label="Prompt List" class="btn-secondary button-responsive" />
       <Button @click="showPromptList = false" label="Usage Statistics" class="btn-secondary button-responsive" />
@@ -50,7 +64,8 @@
               <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" class="w-100" />
             </div>
             <div class="col-6 col-md-3">
-              <Button @click="toggleOverlay" severity="secondary" class="w-100">Neue Prompt´s</Button>
+              <Button @click="toggleOverlay" severity="secondary" class="w-50">Neue Prompt´s</Button>
+              <Button @click="showLeonardoOverlay = true" label="Leonardo Prompts" severity="secondary" class="w-50" />
             </div>
           </div>
         </template>
@@ -104,6 +119,42 @@ const filters = ref({
   keywords: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 const loading = ref(true);
+const showLeonardoOverlay = ref(false);
+const leonardoJsonInput = ref('');
+const leonardoValidationPassed = ref(null);
+
+const validateLeonardoPrompts = () => {
+  try {
+    if (Array.isArray(JSON.parse(leonardoJsonInput.value))) {
+      leonardoValidationPassed.value = true;
+    } else {
+      throw new Error('Eingabe ist kein Array');
+    }
+  } catch (error) {
+    leonardoValidationPassed.value = false;
+    console.error('Validierungsfehler:', error);
+  }
+};
+
+const saveLeonardoPrompts = async () => {
+  if (!leonardoValidationPassed.value) return;
+
+  try {
+    const parsedPrompts = JSON.parse(leonardoJsonInput.value).map(prompt => ({
+      ...prompt,
+      keywords: Array.isArray(prompt.keywords) ? prompt.keywords.join(', ') : prompt.keywords, // Keywords zu String
+      status: 'pending', // Standardstatus
+      created_at: new Date(), // Timestamp hinzufügen
+    }));
+
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/leonardo_prompts`, parsedPrompts);
+    leonardoJsonInput.value = '';
+    console.log('Leonardo Prompts erfolgreich gespeichert');
+  } catch (error) {
+    console.error('Fehler beim Speichern der Leonardo Prompts:', error);
+  }
+};
+
 
 const parsedPrompts = computed(() => {
   if (jsonInput.value !== "") {

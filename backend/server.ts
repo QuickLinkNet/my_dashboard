@@ -357,5 +357,27 @@ app.delete('/api/todos/:id', (req: Request, res: Response) => {
     });
 });
 
+app.post('/api/leonardo_prompts', (req: Request, res: Response) => {
+    const prompts = req.body; // Array von Prompts wird erwartet
+    const values = prompts.map((p: any) => [p.title, p.prompt, p.keywords, p.style, p.resolution]);
+
+    if (!values.length) {
+        return res.status(400).send('Keine Prompts zum Speichern bereitgestellt.');
+    }
+
+    db.query(
+      'INSERT INTO leonardo_prompts (title, prompt, keywords, style, resolution) VALUES ?',
+      [values],
+      (err, result) => {
+          if (err) {
+              console.error('Fehler beim Speichern der Leonardo Prompts:', err.message);
+              return res.status(500).send('Fehler beim Speichern der Leonardo Prompts.');
+          }
+          res.status(201).send({ message: 'Leonardo Prompts erfolgreich gespeichert.', insertedRows: result.affectedRows });
+      }
+    );
+});
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server läuft auf Port ${port}`));
