@@ -1,12 +1,27 @@
 <script setup lang="ts">
-import Dashboard from "./pages/Dashboard.vue";
+import { useRouter } from 'vue-router';
+import Toast from 'primevue/toast';
+
+const router = useRouter();
 </script>
 
+
 <template>
-  <Dashboard></Dashboard>
+  <Toast />
+  <router-view></router-view>
 </template>
 
+<!--<template>-->
+<!--  <Dashboard></Dashboard>-->
+<!--</template>-->
+
 <style scoped>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

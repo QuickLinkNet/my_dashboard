@@ -36,6 +36,7 @@
     "tslib": "^2.5.0",
     "vue": "^3.3.11",
     "vue-chartjs": "^5.3.1",
+    "vue-router": "^4.2.5",
     "vue3-easy-data-table": "^1.5.47",
     "vue3-grid-layout-next": "^1.0.6"
   },
@@ -56,10 +57,5 @@
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
     "vue-tsc": "^1.8.25"
-  },
-  "description": "This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

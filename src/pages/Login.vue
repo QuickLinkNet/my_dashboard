@@ -1,170 +1,165 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <h2 class="login-title">Sign in</h2>
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <input type="text" id="username" placeholder="Username" v-model="loginForm.username" required>
-        </div>
-        <div class="form-group">
-          <input type="password" id="password" placeholder="Password" v-model="loginForm.password" required>
-        </div>
-        <div class="form-group form-remember">
-          <input type="checkbox" id="remember-me" v-model="loginForm.rememberMe">
-          <label for="remember-me">Remember me</label>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="login-button">Login</button>
-          <a href="#" class="forgot-password" @click="handleForgotPassword">Forgot password?</a>
-        </div>
-        <div class="register-link">
-          <span>Don't have an account? <a href="#" class="register-now">Register now</a></span>
-        </div>
-      </form>
+  <div class="login-page">
+    <div class="login-container">
+      <Card class="login-card">
+        <template #header>
+          <div class="logo-container">
+            <i class="pi pi-user-circle"></i>
+          </div>
+        </template>
+        <template #title>
+          <h2 class="text-center">Welcome Back</h2>
+          <p class="text-center subtitle">Please sign in to continue</p>
+        </template>
+        <template #content>
+          <LoginForm />
+        </template>
+        <template #footer>
+          <div class="footer-links">
+            <a href="#" class="forgot-password" @click.prevent="handleForgotPassword">
+              <i class="pi pi-lock mr-2"></i>Passwort vergessen
+            </a>
+            <div class="divider">
+              <span>or</span>
+            </div>
+            <p class="register-text">
+              Sie haben keinen Account?
+              <a href="#" class="register-link">Jetzt registrieren</a>
+            </p>
+          </div>
+        </template>
+      </Card>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import Card from 'primevue/card';
+import LoginForm from '../components/auth/LoginForm.vue';
+import { useAuth } from '../composables/useAuth';
 
-export default defineComponent({
-  name: 'Login',
-  setup() {
-    const loginForm = ref({
-      username: '',
-      password: '',
-      rememberMe: false,
-    });
-
-    const handleLogin = () => {
-      console.log('Login data', loginForm.value);
-    };
-
-    const handleForgotPassword = () => {
-      console.log('Forgot password');
-    };
-
-    return {
-      loginForm,
-      handleLogin,
-      handleForgotPassword,
-    };
-  },
-});
+const { handleForgotPassword } = useAuth();
 </script>
 
-<style>
-.login-container {
+<style scoped>
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #4c7ef3;
+  justify-content: center;
+  padding: 2rem;
+  animation: gradientAnimation 10s ease infinite;
+  background-size: 200% 200%;
+}
+
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.login-container {
+  width: 100%;
+  max-width: 450px;
 }
 
 .login-card {
-  padding: 2em;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 350px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-.login-title {
+.logo-container {
   text-align: center;
-  margin-bottom: 2em;
+  margin-bottom: 1rem;
 }
 
-.form-group {
-  margin-bottom: 1em;
+.logo-container i {
+  font-size: 4rem;
+  color: var(--primary-color);
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-800));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.form-group input[type="text"],
-.form-group input[type="password"] {
-  width: 100%;
-  padding: 0.75em;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--surface-900);
+  margin: 0;
 }
 
-.form-group input[type="text"]::placeholder,
-.form-group input[type="password"]::placeholder {
-  color: #bbb;
+.subtitle {
+  color: var(--surface-600);
+  margin-top: 0.5rem;
+  font-size: 1rem;
 }
 
-.form-remember {
+.footer-links {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 2em;
-
-}
-.form-remember input[type="checkbox"] {
-  margin-right: 0.5em;
-}
-
-.form-actions {
-  text-align: center;
-  margin-bottom: 2em;
-}
-
-.login-button {
-  width: 100%;
-  padding: 0.75em;
-  border: none;
-  border-radius: 4px;
-  background-color: #4c7ef3;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+  gap: 1.5rem;
 }
 
 .forgot-password {
-  display: block;
-  color: #4c7ef3;
+  color: var(--primary-color);
   text-decoration: none;
-  margin-top: 0.5em;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.forgot-password:hover {
+  color: var(--primary-600);
+}
+
+.divider {
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid var(--surface-200);
+  line-height: 0.1em;
+  margin: 1rem 0;
+}
+
+.divider span {
+  background: white;
+  padding: 0 10px;
+  color: var(--surface-600);
+  font-size: 0.9rem;
+}
+
+.register-text {
+  color: var(--surface-600);
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .register-link {
-  text-align: center;
-  margin-top: 2em;
-}
-
-.register-link span {
-  color: #fff;
-}
-
-.register-now {
-  color: #ffc107;
+  color: var(--primary-color);
   text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
 }
 
-/* Additional styles to match the image */
-.login-container {
-  font-family: 'Arial', sans-serif;
+.register-link:hover {
+  color: var(--primary-600);
+  text-decoration: underline;
 }
 
-.login-title {
-  color: #333;
-  font-size: 24px;
+:deep(.p-card) {
+  border-radius: 1.5rem;
+  padding: 1rem;
 }
 
-.form-group input {
-  font-size: 16px;
+:deep(.p-card-content) {
+  padding: 1.5rem 0;
 }
 
-.login-button {
-  background-color: #007bff;
-  box-shadow: none;
-  font-size: 16px;
+:deep(.p-card-footer) {
+  padding-top: 0;
 }
-
-.register-link span,
-.forgot-password {
-  font-size: 14px;
-}
-
-/* Adjust padding and margins as needed to match the image */
 </style>

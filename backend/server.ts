@@ -4,6 +4,25 @@ import * as bodyParser from 'body-parser';
 import * as mysql from 'mysql';
 import * as cors from 'cors';
 import axios from "axios";
+import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcrypt';
+
+declare module 'express-serve-static-core' {
+    interface Request {
+        user?: { id: number; username: string; role: string };
+    }
+}
+
+const authenticateToken = (req: Request, res: Response, next: Function) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).send('Token fehlt');
+
+    jwt.verify(token, 'secret_key', (err, user) => {
+        if (err) return res.status(403).send('Ungültiger Token');
+        req.user = user as { id: number; username: string; role: string };
+        next();
+    });
+};
 
 const app = express();
 app.use(cors());
@@ -378,6 +397,51 @@ app.post('/api/leonardo_prompts', (req: Request, res: Response) => {
     );
 });
 
+app.post('/api/register', async (req: Request, res: Response) => {
+    const { username, email, password, role } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    db.query(
+      'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+      [username, email, hashedPassword, role || 'user'],
+      (err, result) => {
+          if (err) {
+              return res.status(500).send('Fehler bei der Registrierung: ' + err.message);
+          }
+          res.status(201).send({ message: 'Benutzer erfolgreich registriert', id: result.insertId });
+      }
+    );
+});
+
+app.post('/api/login', (req: Request, res: Response) => {
+    const { username, password } = req.body;
+
+    db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        if (err) return res.status(500).send('Fehler bei der Datenbankabfrage');
+        if (!results.length || !(await bcrypt.compare(password, results[0].password))) {
+            return res.status(401).send('Ungültige Anmeldedaten');
+        }
+
+        const user = { id: results[0].id, username: results[0].username, role: results[0].role };
+        const token = jwt.sign(user, 'secret_key', { expiresIn: '1h' });
+
+        res.json({ token, user });
+    });
+});
+
+app.get('/api/me', authenticateToken, (req: Request, res: Response) => {
+    res.json(req.user);
+});
+
+app.get('/api/users', authenticateToken, (req: Request, res: Response) => {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).send('Zugriff verweigert');
+    }
+    db.query('SELECT id, username, email, role FROM users', (err, results) => {
+        if (err) return res.status(500).send('Fehler beim Abrufen der Benutzer');
+        res.json(results);
+    });
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server läuft auf Port ${port}`));
